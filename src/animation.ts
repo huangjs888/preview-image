@@ -2,11 +2,9 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-05-26 14:30:14
+ * @LastEditTime: 2023-06-21 12:28:44
  * @Description: ******
  */
-
-import EventTarget from './event';
 
 const requestAnimationFrame =
   window.requestAnimationFrame ||
@@ -27,95 +25,113 @@ const cancelAnimationFrame =
     return window.clearTimeout(id);
   };
 
-const animate = function animate(
-  this: Animation,
-  frameFn: (v: number) => void,
-  duration: number,
-  easing: Easing,
-) {
-  const start = Date.now();
-  const dest = start + duration;
-  const step = () => {
-    if (this._progress < 0) {
-      return;
-    }
-    const now = Date.now();
-    // 时间用完，执行最后一帧
-    if (now >= dest) {
-      frameFn(1);
-      this.trigger('run', { progress: 1, timestamp: now });
-      this.trigger('end', { progress: 1, timestamp: now });
-      // cancelAnimationFrame(this._frameId);
-      this._progress = -1;
-      return;
-    }
-    const progress = (this._progress = easing((now - start) / duration));
-    frameFn(progress);
-    this.trigger('run', { progress, timestamp: now });
-    this._frameId = requestAnimationFrame(step);
-  };
-  // 假设动画正在进行，此时又再次开始，开始之前应该先取消上一次动画
-  cancelAnimationFrame(this._frameId);
-  this._progress = 0;
-  // 立即执行第一帧
-  step();
-  this.trigger('start', { progress: 0, timestamp: start });
+const callDelay = (callback: (elapsed?: number) => void, delay: number) => {
+  if (delay > 0) {
+    window.setTimeout(callback, delay);
+  } else {
+    callback(Math.abs(delay));
+  }
 };
 
-class Animation extends EventTarget<AType, AEvent> {
-  duration: number; // 动画持续时间
-  easing: Easing; // 动画变换函数
+class Animation {
+  duration: number; // 动画执行持续时间
+  easing: AIEasing; // 动画执行时变换函数
+  delay: number; // 动画延迟多久执行
   _frameId: number = 0; // 当前正在执行帧的id
-  _progress: number = -1; // 当前执行的进度，-1表示没有进行动画
-  constructor(options: AOptions) {
-    super();
+  _sleepId: number = 0; // 当前正在休眠计时id
+  _elapsed: number = 0; // 本次动画已经消耗的时间
+  _tick: ((t: number) => void) | null = null; // 每一帧动画执行函数
+  constructor({ duration, easing, delay }: AIOptions) {
     this.duration =
-      !options.duration || options.duration <= 0 ? 0 : options.duration;
-    this.easing = options.easing || ((v) => v);
+      typeof duration !== 'number' || duration <= 0 ? 0 : duration;
+    this.easing = typeof easing !== 'function' ? (v) => v : easing;
+    this.delay = typeof delay !== 'number' ? 0 : delay;
   }
-  start(
-    frameFn: (v: number) => void,
-    duration: number = this.duration,
-    easing: Easing = this.easing,
-  ) {
-    if (duration === 0) {
-      // requestAnimationFrame(() => {
-      const now = Date.now();
-      this.trigger('start', { progress: 0, timestamp: now });
-      frameFn(1);
-      this.trigger('run', { progress: 1, timestamp: now });
-      this.trigger('end', { progress: 1, timestamp: now });
-      // });
+  start(frameFn: (v: number) => void) {
+    // 只有全新的开始才会运行
+    if (this._frameId === 0 && this._elapsed === 0) {
+      const { duration, easing, delay } = this;
+      if (duration > 0) {
+        const tick = (last: number) => {
+          // 本帧时间戳，last：上一帧时间戳
+          const now = Date.now();
+          // 累计已经耗用的时间
+          this._elapsed += now - last;
+          if (this._elapsed < duration) {
+            // 开启下一帧
+            this._frameId = requestAnimationFrame(() => tick(now));
+            // 每一帧的进度
+            frameFn(easing(this._elapsed / duration));
+          } else {
+            frameFn(1);
+            // 执行完毕后清除
+            this._tick = null;
+            this._frameId = 0;
+            this._elapsed = 0;
+          }
+        };
+        this._tick = tick;
+        // 执行第一帧
+        callDelay((elapsed = 0) => {
+          // 第一次直接用掉这些时间
+          this._elapsed = elapsed;
+          tick(Date.now());
+        }, delay);
+      } else {
+        callDelay(() => {
+          frameFn(1);
+        }, delay);
+      }
+    }
+  }
+  restart() {
+    // restart之前先停止运行
+    this.stop();
+    // 停止后启动帧，只有动画已经开始并且未结束才可以
+    if (this._elapsed < this.duration && this._tick) {
+      // 启动帧
+      this._tick(Date.now());
+    }
+  }
+  sleep(time: number) {
+    // 这里注意，如果动画先停止，再点休眠，时间一到会再重启动画，相当于delay一下再restart
+    if (typeof time !== 'number' || time <= 0) {
       return;
     }
-    animate.apply(this, [frameFn, duration, easing]);
+    // sleep之前先停止运行
+    this.stop();
+    // 停止后启动休眠，只有动画已经开始并且未结束才可以
+    if (this._elapsed < this.duration && this._tick) {
+      this._sleepId = window.setTimeout(() => {
+        // 到时间后重启动画
+        this.restart();
+      }, time);
+    }
   }
   stop() {
-    if (this._progress > 0) {
-      const progress = this._progress;
-      this._progress = -1;
-      cancelAnimationFrame(this._frameId);
-      this.trigger('cancel', {
-        progress,
-        timestamp: Date.now(),
-      });
+    // 如果在sleep，要先清除sleep
+    window.clearTimeout(this._sleepId);
+    // 清掉还未运行的帧
+    cancelAnimationFrame(this._frameId);
+    this._frameId = 0;
+  }
+  end() {
+    // end之前先停止运行
+    this.stop();
+    // 停止后直接运行最后一帧结束动画，只有动画已经开始并且未结束才可以
+    if (this._elapsed < this.duration && this._tick) {
+      this._elapsed = this.duration;
+      this._tick(Date.now());
     }
   }
 }
 
-export type Easing = (v: number) => number;
+export type AIEasing = (v: number) => number;
 
-export type AType =
-  | 'start' // 动画开始
-  | 'run' // 动画运行
-  | 'end' // 动画结束
-  | 'cancel'; // 动画取消
-
-export type AEvent = { progress: number; timestamp: number };
-
-export type AOptions = {
+export type AIOptions = {
   duration?: number; // 动画持续时间
-  easing?: Easing; // 动画变换函数
+  easing?: AIEasing; // 动画变换函数
+  delay?: number; // 动画延迟多久执行，负数的话，会在第一次把这个时间内的变化一次性用掉，具体看css3-transition-delay
 };
 
 export default Animation;

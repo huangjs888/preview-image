@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-27 13:54:39
+ * @LastEditTime: 2023-06-20 10:49:25
  * @Description: ******
  */
 
@@ -91,11 +91,11 @@ export function getVelocity(deltaTime: number, distance: number) {
   return distance / deltaTime;
 }
 
-//根据距离，与水平夹角，计算向量值
-export function getVector(distance: number, angle: number) {
-  if (typeof distance !== 'number' || typeof angle !== 'number') {
+//根据数值，与水平夹角，计算x和y的分量值
+export function getVector(value: number, angle: number) {
+  if (typeof value !== 'number' || typeof angle !== 'number') {
     return [0, 0];
   }
   const rad = (angle * Math.PI) / 180;
-  return [distance * Math.cos(rad), distance * Math.sin(rad)];
+  return [value * Math.cos(rad), value * Math.sin(rad)];
 }

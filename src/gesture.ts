@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-05-25 14:12:52
+ * @LastEditTime: 2023-06-20 15:39:10
  * @Description: ******
  */
 
@@ -72,7 +72,7 @@ function touchstarted(this: Gesture, event: TouchEvent) {
   this._preventSingleTap = true;
   this._preventDoubleTap = true;
   this._swipePoints = null;
-  this._rorateAngle = 0;
+  this._rotateAngle = null;
   if (this._longTapTimer) {
     clearTimeout(this._longTapTimer);
     this._longTapTimer = null;
@@ -197,19 +197,19 @@ function touchmoved(this: Gesture, event: TouchEvent) {
       // 注意，这里坐标轴是页面坐标，x轴向右正方向，y轴向下正方向，原点在左上角
       let angle = eAngle - mAngle;
       if (angle < -180) {
-        // 此种情况属于顺针转动时mAngle突然由正变为负值（比如由178度顺时针旋转4度都-178度）
-        // 这种情况，因为eAngle和mAngle是两次相邻的移动事件，间隔角度很小（4度）而不是反向很大的（-356度）
+        // 此种情况属于顺时针转动时mAngle突然由正变为负值（比如由178度顺时针旋转4度都-178度）
+        // 这种情况，因为eAngle和mAngle是两次相邻的移动事件，间隔角度很小（4度）而不会是很大的（-356度）
         angle += 360;
       } else if (angle > 180) {
-        // 和上面相反（比如由-178逆时针旋转4度到178）
+        // 和上面相反逆时针转动（比如由-178逆时针旋转4度到178）
         angle -= 360;
       }
-      this._rorateAngle += angle;
       // 双指旋转本次和上一次的角度，正值顺时针，负值逆时针
       newEvent.angle = angle;
       // 双指旋转起点到终点的总旋转角度，正值顺时针，负值逆时针
       // 这里不能直接使用eAngle-sAngle，否则顺逆时针分不清，需要通过angle累加
-      newEvent.moveAngle = this._rorateAngle;
+      const moveAngle = (this._rotateAngle || 0) + angle;
+      newEvent.moveAngle = this._rotateAngle = moveAngle;
       this.trigger('rotate', newEvent);
       if (sDistance > 0 && eDistance > 0 && mDistance > 0) {
         this.trigger('pinch', newEvent);
@@ -349,8 +349,11 @@ function touchended(this: Gesture, event: TouchEvent) {
         );
         // swipe速率需要大于swipeVelocity，否则忽略不计，不视为swipe
         if (velocity > this.swipeVelocity) {
+          // 滑动方向与x夹角
+          const angle = getAngle(startPos.point, endPos.point);
           // 惯性的方向
           newEvent.direction = getDirection(startPos.point, endPos.point);
+          newEvent.angle = angle;
           newEvent.velocity = velocity;
           // 给出按照velocity速度滑动，当速度减到0时的计算函数：
           // 当给出时间t，即在t时间内速度减到0，求出滑动的距离：
@@ -358,30 +361,30 @@ function touchended(this: Gesture, event: TouchEvent) {
           // 减速度某个时间的位移：s = v0 * t - (a * t * t) / 2
           // 减速度某个时间的速度：v = v0 - a * t
           // s为滑动距离，v末速度为0，v0初速度为velocity
-          newEvent.swipeComputed = (factor: number) => {
-            // 因子大于1可以认为传入的是时间参数
+          newEvent.swipeComputed = (
+            factor: number,
+            _velocity: number = velocity,
+          ) => {
+            // 因子大于1可以认为传入的是时间毫秒数
             let duration = 0;
             let deceleration = 0;
             let distance = 0;
             if (factor > 1) {
               duration = factor;
-              deceleration = velocity / duration;
-              distance = (velocity * duration) / 2;
+              deceleration = _velocity / duration;
+              distance = (_velocity * duration) / 2;
             }
-            // 因子小于1可以认为传入的是减速度
+            // 因子小于1可以认为传入的是减速度（减速如果大于1一般太大了，不符合使用场景）
             else if (factor > 0) {
               deceleration = factor;
-              duration = velocity / deceleration;
-              distance = (velocity * velocity) / (2 * deceleration);
+              duration = _velocity / deceleration;
+              distance = (_velocity * _velocity) / (2 * deceleration);
             }
-            const [inertiaX, inertiaY] = getVector(
-              distance,
-              getAngle(startPos.point, endPos.point),
-            );
+            const [stretchX, stretchY] = getVector(distance, angle);
             return {
               duration, // swipe速率减到0花费的时间
-              inertiaX, // x方向swipe惯性距离（抬起后，继续移动的距离）
-              inertiaY, // y方向swipe惯性距离（抬起后，继续移动的距离）
+              stretchX, // x方向swipe惯性距离（抬起后，继续移动的距离）
+              stretchY, // y方向swipe惯性距离（抬起后，继续移动的距离）
               deceleration, // swipe速率减到0的减速度
             };
           };
@@ -430,19 +433,19 @@ function scrollcanceled(this: Gesture) {
   this._swipePoints = null;
   this._preventSingleTap = true;
   this._preventDoubleTap = true;
-  this._rorateAngle = 0;
+  this._rotateAngle = null;
 }
 
 class Gesture extends EventTarget<GType, GEvent> {
   element: HTMLElement;
-  longTapInterval: number = 750;
-  doubleTapInterval: number = 250;
-  doubleTapDistance: number = 10;
-  touchMoveDistance: number = 3;
-  swipeVelocity: number = 0.3;
-  swipeDuration: number = 100;
-  raiseDuration: number = 100;
-  _rorateAngle: number = 0;
+  longTapInterval: number;
+  doubleTapInterval: number;
+  doubleTapDistance: number;
+  touchMoveDistance: number;
+  swipeVelocity: number;
+  swipeDuration: number;
+  raiseDuration: number;
+  _rotateAngle: number | null = null;
   _singleTapTimer: number | null = null;
   _longTapTimer: number | null = null;
   _preventTap: boolean = true;
@@ -551,10 +554,10 @@ export type GEvent = {
   timestamp: number;
   point: number[]; // 当前事件变化的点，如果多个点（两个），取中心点
   scale?: number; // 移动的缩放比例（和上一个点比较）
-  angle?: number; // 移动的旋转角度（和上一个点比较）
+  angle?: number; // 移动的旋转角度（和上一个点比较）swipe角度
   deltaX?: number; // x方向移动的距离（和上一个点比较）
   deltaY?: number; // y方向移动的距离（和上一个点比较）
-  direction?: string; // 移动时的方向（和上一个点比较）
+  direction?: string; // 移动时的方向（和上一个点比较）swipe方向
   moveScale?: number; // 移动的缩放比例（和起点比较）
   moveAngle?: number; // 移动的旋转角度（和起点比较）
   moveX?: number; // x方向移动的距离（和起点比较）
@@ -564,10 +567,13 @@ export type GEvent = {
   waitTime?: number; // 长按等待时间
   delayTime?: number; // 点击延迟时间
   intervalTime?: number; // 双击间隔时间
-  swipeComputed?: (factor: number) => {
+  swipeComputed?: (
+    factor: number,
+    _velocity?: number,
+  ) => {
     duration: number; // swipe速率减到0花费的时间
-    inertiaX: number; // x方向swipe惯性距离（抬起后，继续移动的距离）
-    inertiaY: number; // y方向swipe惯性距离（抬起后，继续移动的距离）
+    stretchX: number; // x方向swipe惯性距离（抬起后，继续移动的距离）
+    stretchY: number; // y方向swipe惯性距离（抬起后，继续移动的距离）
     deceleration: number; // swipe速率减到0的减速度
   };
   preventDefault: () => void;

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-05-30 15:14:24
+ * @LastEditTime: 2023-06-21 15:08:59
  * @Description: ******
  */
 import ImageView from '../src/index';
@@ -41,28 +41,55 @@ if (view) {
     target.height = height;
     img.onload = null;
   };
-  img.src = require('./image/552.png');
+  img.src = require('./image/ok.jpg');
   view.appendChild(img);
   const image = new ImageView({
     container: view,
     element: img,
+    // damping: ['rotate', 'scale', 'translate'],
+    // rotation: [-90, 90],
+    // scalation: [0.1, 10],
+    /* translation: [
+      [-Infinity, Infinity],
+      [-Infinity, Infinity],
+    ], */
   });
+  /* (document.querySelector('#stop') as HTMLElement).onclick = () => {
+    image._transition._animation[0].animation.stop();
+  };
+  (document.querySelector('#end') as HTMLElement).onclick = () => {
+    image._transition._animation[0].animation.end();
+  };
+  (document.querySelector('#restart') as HTMLElement).onclick = () => {
+    image._transition._animation[0].animation.restart();
+  };
+  (document.querySelector('#sleep') as HTMLElement).onclick = () => {
+    image._transition._animation[0].animation.sleep(3000);
+  }; */
   (document.querySelector('#click') as HTMLElement).onclick = () => {
-    image.scaleTo(2);
-    /* const a = image.translateYTo(100);
+    /* image._transition.apply(
+      { x: 410 },
+      {
+        delay: -3000,
+        duration: 10000,
+        easing: function (t: number) {
+          return t;
+        },
+        cancel: false,
+      },
+    ); */
+    // image.transform({ k: 2, x: 100, y: 100 }, [0, 252]);
+
+    image.transformTo({ k: 6.544 });
+
+    // image.transformTo({  });
+    // image.transformTo({ k: 3 }, [307, 394]);
+    /* image.transformOK({ x: 100 });
+    image.transformOK({ y: 50 });
     setTimeout(() => {
-      if (!b) console.log('正在进行动画');
-    }, 500); */
-    /* image.scaleTo(2);
-    setTimeout(() => {
-      image.translateXTo(10);
-      image.translateYTo(100);
-    }, 5000); */
-    /* image.translateXTo(10);
-    image.translateYTo(100);
-    setTimeout(() => {
-      image.scaleTo(2, [307, 394]);
-    }, 5000); */
+      image.transformOK({ x: 50 });
+      image.transformOK({ y: 100 });
+    }, 2600); */
   };
 
   /*

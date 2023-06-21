@@ -2,320 +2,315 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-05-30 15:20:31
+ * @LastEditTime: 2023-06-21 15:03:04
  * @Description: ******
  */
 
 import Gesture, { type GEvent } from './gesture';
-import { matrix3d, identity, each, type Transform } from './transform';
-import Animation, { type Easing } from './animation';
+import Transition, { TAProperty, TAIOptions } from './transition';
+import Transform, { type TransformRaw } from './transform';
 import {
   ratioOffset,
-  swipeDamping,
   performDamping,
   revokeDamping,
   isBetween,
   between,
-  isNumber,
   execute,
-  easingOptions,
+  easeOutQuad,
+  easeOutQuart,
 } from './adjust';
 
 function transition(
   this: ImageView,
-  stop: boolean,
-  transform: Transform,
-  duration: number = easingOptions.bounce.duration,
-  easing: Easing = easingOptions.bounce.fn,
+  transformRaw: TransformRaw,
+  options: TAIOptions = {},
 ) {
-  return new Promise<void>((resolve) => {
-    const sTransform = { ...(this._transform || {}) };
-    // 先检查是否要进行动画（如果动画后的值和动画前完全一样，没必要进行过渡）
-    let isAnimate = false;
-    each(transform, (key, value) => {
-      const sValue = sTransform[key];
-      if (isNumber(sValue, value) && sValue !== value) {
-        // 一旦判断可以执行动画，退出循环
-        isAnimate = true;
-        return false;
+  const deltaValue: TransformRaw = {};
+  const precision: TransformRaw = {};
+  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+  const { a, k, x, y } = transformRaw;
+  if (typeof a === 'number') {
+    deltaValue.a = (this._transform.a = a) - ta;
+    // 角度精度按照屏幕尺寸一般暂时设置为0.001
+    precision.a = 0.001;
+  }
+  if (typeof k === 'number') {
+    deltaValue.k = (this._transform.k = k) - tk;
+    // 缩放精度按照屏幕尺寸一般暂时设置为0.001
+    precision.k = 0.001;
+  }
+  if (typeof x === 'number') {
+    deltaValue.x = (this._transform.x = x) - tx;
+    // 像素精度都在1px
+    precision.x = 1;
+  }
+  if (typeof y === 'number') {
+    deltaValue.y = (this._transform.y = y) - ty;
+    // 像素精度都在1px
+    precision.y = 1;
+  }
+  return this._transition
+    .apply(deltaValue, {
+      precision,
+      duration: 400,
+      easing: easeOutQuart,
+      cancel: true,
+      ...options,
+    })
+    .then((value) => {
+      if (!this._transition.transitioning()) {
+        // 在最后一个动画的最后一帧结束重新绑定一下过渡值，目的是为了让_transition里的value和_transform保持一致
+        this._transition.bind(this._transform.toRaw());
+      }
+      return value;
+    });
+}
+const touchStart = function touchStart(this: ImageView, e: GEvent) {
+  if (e.sourceEvent.touches.length > 1) {
+    // 当单指未触发移动，接着放了另外的手指，则认为开启了双指操作，手指为2个
+    if (this._fingers === 0) {
+      this._fingers = 2;
+    }
+  }
+  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+  this._transition.cancel().forEach((value) => {
+    // 取消动画（返回值是动画未执行的部分）后应该把this._transform内的值减掉还未执行的部分
+    Object.keys(value).forEach((key) => {
+      const val = value[key];
+      if (key === 'a') {
+        this._transform.a = ta - val;
+      } else if (key === 'k') {
+        this._transform.k = tk - val;
+      } else if (key === 'x') {
+        this._transform.x = tx - val;
+      } else if (key === 'y') {
+        this._transform.y = ty - val;
       }
     });
-    if (isAnimate && this._animation) {
-      const animation = new Animation({ duration, easing });
-      this._animation.push({ animation, stop });
-      animation.start((progress) => {
-        each(transform, (key, value) => {
-          const sValue = sTransform[key];
-          if (this._transform && isNumber(sValue, value)) {
-            this._transform[key] =
-              ((value as number) - (sValue as number)) * progress +
-              (sValue as number);
-          }
-        });
-        this.element.style.setProperty(
-          'transform',
-          matrix3d(this._transform || {}),
-        );
-        if (progress === 1) {
-          // 动画结束后删除
-          if (this._animation) {
-            const index = this._animation.findIndex(
-              (a) => animation === a.animation,
-            );
-            this._animation.splice(index, 1);
-          }
-          resolve();
-        }
-      });
-    }
-  });
-}
-
-function adjustOffset(
-  this: ImageView,
-  ox: number,
-  oy: number,
-  vk: number,
-  tk: number,
-) {
-  // 测微信得到的结论
-  // 这个偏移量需要要向着边缘点发散
-  const { width: cw, height: ch } = this.getContainerSize();
-  const { width, height } = this.getElClientSize();
-  const ew = width / tk;
-  const eh = height / tk;
-  const k = vk / tk;
-  return [
-    between(ew - (cw - ew) / (k - 1), [0, ew]) *
-      ratioOffset(ox / ew, k, between(cw / ew, [1, 2])),
-    between(eh - (ch - eh) / (k - 1), [0, eh]) *
-      ratioOffset(oy / eh, k, between(ch / eh, [1, 2])),
-  ];
-  // 思路：对元素进行划线分界
-  // 1，在元素上边的时候，用元素实际高度一半(eh/2)的基础上在除以双击比例k(eh/2k)作为上分界线，分界线到元素上边缘区域内点击，全部视为在元素上边缘线上点击，即放大后元素上边缘会紧贴在容器上边缘
-  // 2，在元素下边的时候，先用容器的高(ch)比上元素实际高(eh)，即ch/eh（但是这个比例值只能在1和2之间（即只针对元素高小于容器高且大于容器高一半的情况）），用这个比例减去eh/2k，得到的结果乘以元素实际高(eh)，再以此作为下分界线，分界线到元素下边缘区域内点击，全部视为在元素下边缘线上点击，即放大后元素下边缘会紧贴在容器下边缘
-  // 3，找出元素在不受偏移量和边界限制的影响下，点击元素中心点放大后，元素上下各存在一条界线正好与容器边缘重合，计算出该界线到中心点的距离，该距离一定是在元素中心点到元素边缘之间即0,ew/2之间，并且两条界线等距
-  // 4，在1，2中算出的上下分界线之间内点击，计算均匀分布对应到在3中算出的上下界线之间内点击，分界线中点处对应元素中点处，最后得到对应的偏移量oy
-  // 5，元素左右计算方式如同上下方式一样得到ox
-}
-
-const touchStart = function touchStart(this: ImageView) {
-  this._startMoving = null;
-  this._animation = (this._animation || []).filter(({ animation, stop }) => {
-    // swipe的动画立即停止
-    if (stop) {
-      animation.stop();
-      // 停止后过滤掉（即删除）
-      return false;
-    }
-    // 不需要停止的动画会在动画结束后被删除
-    return true;
+    // 曲线救国 1：
+    // _firstPoint和_preventSingleTap是_gesture内部记录判断是否执行doubleTap的内部参数
+    // 这里注入设置，目的是使停止动画的这一次触摸忽略不参与记录判断doubleTap
+    this._gesture._firstPoint = null;
+    this._gesture._preventSingleTap = true;
   });
 };
 const touchMove = function touchMove(this: ImageView, e: GEvent) {
-  if ((this._animation || []).length > 0) {
+  if (e.sourceEvent.touches.length === 1 && this._fingers === 0) {
+    // 当触发移动时，若只有一个手指在界面上，就认为一直只有一个手指，即使后面再放手指
+    this._fingers = 1;
+  }
+  if (this.transforming()) {
     // 若存在正在进行的渐变动画，则不做任何操作
     return;
   }
-  const {
-    point,
-    moveAngle: _a = 0,
-    moveScale: _k = 1,
-    moveX: _x = 0,
-    moveY: _y = 0,
-  } = e;
-  const { damping, rotation, scalation, translation } = this;
-  const [translationX, translationY] = translation || [];
-  const isRotateDamping = damping && damping.indexOf('rotate') !== -1;
-  const isScaleDamping = damping && damping.indexOf('scale') !== -1;
-  const isTranslateDamping = damping && damping.indexOf('translate') !== -1;
-  let offset, transform;
-  if (!this._startMoving) {
-    const [cx, cy] = this.getContainerCenter();
-    const {
-      a: ta = 0,
-      k: tk = 1,
-      x: tx = 0,
-      y: ty = 0,
-    } = this._transform || {};
-    offset = [point[0] - (cx + tx), point[1] - (cy + ty)];
-    // 如果进入move的时候，元素正处于超出边界的状态，
-    // 那么超出边界部分是做了Damping的，这里要恢复出原值，
-    // 如此，move时，总超出部分进行总体Damping计算更准确。
-    transform = {
-      a: isRotateDamping ? revokeDamping(ta, execute(rotation)) : ta,
-      k: isScaleDamping ? revokeDamping(tk, execute(scalation), true) : tk,
-      x: isTranslateDamping ? revokeDamping(tx, execute(translationX, tk)) : tx,
-      y: isTranslateDamping ? revokeDamping(ty, execute(translationY, tk)) : ty,
+  const { point, angle = 0, scale = 1, deltaX = 0, deltaY = 0 } = e;
+  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+  const { rotation, scalation, translation } = this;
+  const [translationX, translationY] = translation;
+  let transformRaw: TransformRaw = {};
+  if (this._fingers === 1) {
+    // _fingers为1的时候，只进行位移，不进行旋转和缩放，相当于单指移动
+    // 曲线救国 2：
+    // _rotateAngle是_gesture内部记录双指累计旋转角度的参数
+    // 这里拿出来是为了阻止双指移动时改变了_rotateAngle类型，仅仅是让touchEnd的时候可以取消动画
+    this._gesture._rotateAngle = null;
+    let adjustTranlate = between;
+    let _tx = tx;
+    let _ty = ty;
+    // 若允许阻尼，首先应该先把当前值反算出阻尼之前的原值
+    if (this.isDamping('translate')) {
+      _tx = revokeDamping(tx, execute(translationX, tk));
+      _ty = revokeDamping(ty, execute(translationY, tk));
+      adjustTranlate = performDamping;
+    }
+    transformRaw = {
+      a: ta,
+      k: tk,
+      x: adjustTranlate(_tx + deltaX, execute(translationX)),
+      y: adjustTranlate(_ty + deltaY, execute(translationY)),
     };
-    this._startMoving = { offset, transform };
   } else {
-    offset = this._startMoving.offset;
-    transform = this._startMoving.transform;
+    // 若允许阻尼，首先应该先把当前值反算出阻尼之前的原值
+    let adjustRotate = between;
+    let _ta = ta;
+    if (this.isDamping('rotate')) {
+      _ta = revokeDamping(ta, execute(rotation));
+      adjustRotate = performDamping;
+    }
+    let adjustScale = between;
+    let _tk = tk;
+    if (this.isDamping('scale')) {
+      _tk = revokeDamping(tk, execute(scalation), true);
+      adjustScale = performDamping;
+    }
+    let adjustTranlate = between;
+    let _tx = tx;
+    let _ty = ty;
+    if (this.isDamping('translate')) {
+      _tx = revokeDamping(tx, execute(translationX, tk));
+      _ty = revokeDamping(ty, execute(translationY, tk));
+      adjustTranlate = performDamping;
+    }
+    // 把原值进行各项变化，再进行总体阻尼计算
+    const a = adjustRotate(_ta + angle, execute(rotation));
+    const k = adjustScale(_tk * scale, execute(scalation), true);
+    const [ox, oy] = this.getCenterOffset(point, k);
+    const x = adjustTranlate(_tx + ox + deltaX, execute(translationX, k));
+    const y = adjustTranlate(_ty + oy + deltaY, execute(translationY, k));
+    transformRaw = { a, k, x, y };
   }
-  const { a: sa = 0, k: sk = 1, x: sx = 0, y: sy = 0 } = transform;
-  const adjustRotate = isRotateDamping ? performDamping : between;
-  const a = adjustRotate(sa + _a, execute(rotation));
-  const adjustScale = isScaleDamping ? performDamping : between;
-  const k = adjustScale(sk * _k, execute(scalation), true);
-  const t = 1 - k / sk;
-  const adjustTranlate = isTranslateDamping ? performDamping : between;
-  const x = adjustTranlate(sx + offset[0] * t + _x, execute(translationX, k));
-  const y = adjustTranlate(sy + offset[1] * t + _y, execute(translationY, k));
-  transition.apply(this, [false, { a, k, x, y }, 0]);
+  // 这里移动时不需要动画，可以直接进行绑定赋值
+  this._transform = new Transform(transformRaw);
+  this._transition.bind(transformRaw);
 };
 const touchEnd = function touchEnd(this: ImageView, e: GEvent) {
-  this._startMoving = null;
-  if ((this._animation || []).length > 0) {
+  if (e.sourceEvent.touches.length === 0 && this._fingers !== 0) {
+    // 手指全部抬起时，手指数目置为0
+    this._fingers = 0;
+  }
+  if (this.transforming()) {
     // 若存在正在进行的渐变动画，则不做任何操作
     return;
   }
-  const [cx, cy] = this.getContainerCenter();
-  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform || {};
-  const offset = [e.point[0] - (cx + tx), e.point[1] - (cy + ty)];
-  const { damping, rotation, scalation, translation } = this;
-  const [translationX, translationY] = translation || [];
-  const isTranslateDamping = damping && damping.indexOf('translate') !== -1;
-  const a = between(ta, execute(rotation));
-  const k = between(tk, execute(scalation));
-  const d = 1 - k / tk;
-  const x = between(
-    (isTranslateDamping ? revokeDamping(tx, execute(translationX, tk)) : tx) +
-      offset[0] * d,
-    execute(translationX, k),
+  const { rotation, scalation, translation } = this;
+  const [translationX, translationY] = translation;
+  let { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+  // 若允许阻尼，首先应该先把当前值反算出阻尼之前的原值
+  if (this.isDamping('rotate')) {
+    ta = revokeDamping(ta, execute(rotation));
+  }
+  if (this.isDamping('scale')) {
+    tk = revokeDamping(tk, execute(scalation), true);
+  }
+  if (this.isDamping('translate')) {
+    tx = revokeDamping(tx, execute(translationX, tk));
+    ty = revokeDamping(ty, execute(translationY, tk));
+  }
+  this.transformTo(
+    {
+      a: ta,
+      k: tk,
+      x: tx,
+      y: ty,
+    },
+    e.point,
+    {
+      // 曲线救国 3：
+      // _rotateAngle是_gesture内部记录双指累计旋转角度的参数
+      // 这里拿出来是为了判断抬起之前是否进行过双指移动行为（如果未移动或单指是null），从而判断是否可以取消动画
+      cancel: typeof this._gesture._rotateAngle !== 'number',
+    },
   );
-  const y = between(
-    (isTranslateDamping ? revokeDamping(ty, execute(translationY, tk)) : ty) +
-      offset[1] * d,
-    execute(translationY, k),
-  );
-  transition.apply(this, [false, { a, k, x, y }]);
 };
 const doubleTap = function doubleTap(this: ImageView, e: GEvent) {
-  if ((this._animation || []).length > 0) {
+  if (this.transforming()) {
     // 若存在正在进行的渐变动画，则不做任何操作
     return;
   }
-  const { dblScale, rotation, scalation, translation } = this;
-  const [translationX, translationY] = translation || [];
-  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform || {};
-  const [cx, cy] = this.getContainerCenter();
-  let ox = e.point[0] - (cx + tx);
-  let oy = e.point[1] - (cy + ty);
+  const { dblScale, scalation } = this;
   const { value, adjust } = execute(dblScale);
+  // 这三个比例都是用保留三位小数的结果进行比较
+  // 其实这里的3应该用1/屏幕的宽高算出的小数位数
+  // 此刻比例和位移
+  const tk = this._transform.k || 1;
+  // 双击变化的比例
   const dk = between(value, execute(scalation));
+  // 再次双击恢复的比例（初始比例）
   const bk = between(1, execute(scalation));
-  let transform = identity();
-  if (adjust) {
-    if ((dk > bk && tk <= bk) || (dk < bk && tk >= bk)) {
-      [ox, oy] = adjustOffset.apply(this, [ox, oy, dk, tk]);
-      const t = 1 - dk / tk;
-      transform = {
-        a: ta,
-        k: dk,
-        x: between(tx + ox * t, execute(translationX, dk)),
-        y: between(ty + oy * t, execute(translationY, dk)),
-      };
+  // 双击变化（如果设置的双击比例大于初始比例并且此刻比例小于或等于初始比例
+  // 或者设置的双击比例小于初始比例且此刻比例大于或等于初始比例）
+  if ((dk > bk && tk <= bk) || (dk < bk && tk >= bk)) {
+    if (adjust) {
+      // 需要调整的情况，自己算偏移量，并且旋转置为0
+      const [ox, oy] = this.getCenterOffset(e.point, dk, adjust);
+      const { x: tx = 0, y: ty = 0 } = this._transform;
+      this.transformTo({ a: 0, k: dk, x: tx + ox, y: ty + oy });
     } else {
-      transform = {
-        a: between(0, execute(rotation)),
-        k: bk,
-        x: between(0, execute(translationX, 1)),
-        y: between(0, execute(translationY, 1)),
-      };
+      // 交给transformTo
+      this.transformTo({ k: dk }, e.point);
     }
   } else {
-    const k = (dk > bk && tk <= bk) || (dk < bk && tk >= bk) ? dk : bk;
-    const t = 1 - k / tk;
-    transform = {
-      a: ta,
-      k,
-      x: between(tx + ox * t, execute(translationX, k)),
-      y: between(ty + oy * t, execute(translationY, k)),
-    };
+    // 再次双击恢复
+    if (adjust) {
+      // 需要调整的情况，置为初始状态
+      this.transformTo({ a: 0, k: bk, x: 0, y: 0 });
+    } else {
+      // 交给transformTo
+      this.transformTo({ k: bk }, e.point);
+    }
   }
-  transition.apply(this, [false, transform]);
 };
 const swipe = function swipe(this: ImageView, e: GEvent) {
-  if ((this._animation || []).length > 0) {
+  if (this.transforming()) {
     // 若存在正在进行的渐变动画，则不做任何操作
     return;
   }
   const { velocity = 0, swipeComputed } = e;
   if (velocity > 0 && swipeComputed) {
     const { width, height } = this.getContainerSize();
+    const { k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
     // 设置减速度为 0.003，获取当速度减为 0 时的滑动距离和时间
     // 减速度为 0.003，这个需要测微信
-    const { duration, inertiaX, inertiaY } = swipeComputed(0.003);
-    const { damping, translation } = this;
-    const [translation0, translation1] = translation || [];
-    const isTranslateDamping = damping && damping.indexOf('translate') !== -1;
-    const { k = 1, x = 0, y = 0 } = this._transform || {};
+    const { duration, stretchX, stretchY } = swipeComputed(
+      0.003,
+      velocity > 3 ? 2 + Math.pow(velocity - 2, 1 / 3) : velocity, // 对速度进行一个限制
+    );
+    const _duration = Math.max(1200, Math.min(duration, 2500));
     // 判断x方向此刻是否超出边界，如果超出，直接归位，未超出，则惯性位移
-    const translationX = execute(translation0, k);
-    if (isBetween(x, translationX)) {
-      // 如果x在translationX范围内，那么x值一定是不含damping过的部分，可以直接使用
-      // 调整x方向最终的惯性距离
-      const swipeX = isTranslateDamping
-        ? swipeDamping(
-            x + inertiaX, // x方向最终位移
-            (2 * inertiaX) / duration, // x方向初始速度
-            translationX, // x方向位移范围
-            width,
-          )
-        : between(x + inertiaX, translationX);
-      // 判断惯性位移后是否超出边界
-      const inBoundary = isBetween(swipeX, translationX);
-      // 根据是否超出边界使用不同的easingOption
-      const eOption = easingOptions[inBoundary ? 'swipe' : 'swipeBounce'];
+    const translationX = execute(this.translation[0], tk);
+    if (isBetween(tx, translationX)) {
+      let x = tx + stretchX;
+      let t = _duration;
+      if (!isBetween(x, translationX)) {
+        x = between(x, translationX);
+        let ratio = Math.sqrt(1 - Math.abs((x - tx) / stretchX));
+        if (this.isDamping('translate')) {
+          const v = ratio * ((2 * Math.abs(stretchX)) / duration);
+          x += width * Math.min(v / 20, 1 / 4) * (stretchX > 0 ? 1 : -1);
+          ratio = Math.sqrt(1 - Math.abs((x - tx) / stretchX));
+        }
+        t = Math.max(t * (1 - ratio), 400);
+      }
       // x方向进行惯性位移
       transition
-        .apply(this, [true, { x: swipeX }, eOption.duration, eOption.fn])
+        .apply(this, [{ x }, { easing: easeOutQuad, duration: t }])
         .then(() => {
           // 惯性位移后超出边界，则归位
-          if (!inBoundary) {
-            transition.apply(this, [
-              true,
-              { x: between(swipeX, translationX) },
-            ]);
+          if (!isBetween(x, translationX)) {
+            transition.apply(this, [{ x: between(x, translationX) }]);
           }
         });
     } else {
-      // 已经超出边界，不再进行惯性位移，直接归位
-      transition.apply(this, [true, { x: between(x, translationX) }]);
+      // 直接归位
+      transition.apply(this, [{ x: between(tx, translationX) }]);
     }
     // 判断y方向此刻是否超出边界，如果超出，直接归位，未超出，则惯性位移
-    const translationY = execute(translation1, k);
-    if (isBetween(y, translationY)) {
-      // 如果y在translationY范围内，那么y值一定是不含damping过的部分，可以直接使用
-      // 调整y方向最终的惯性距离
-      const swipeY = isTranslateDamping
-        ? swipeDamping(
-            y + inertiaY, // y方向最终位移
-            (2 * inertiaY) / duration, // y方向初始速度
-            translationY, // y方向位移范围
-            height,
-          )
-        : between(y + inertiaY, translationY);
-      // 判断惯性位移后是否超出边界
-      const inBoundary = isBetween(swipeY, translationY);
-      // 根据是否超出边界使用不同的easingOption
-      const eOption = easingOptions[inBoundary ? 'swipe' : 'swipeBounce'];
-      /// y方向进行惯性位移
+    const translationY = execute(this.translation[1], tk);
+    if (isBetween(ty, translationY)) {
+      let y = ty + stretchY;
+      let t = _duration;
+      if (!isBetween(y, translationY)) {
+        y = between(y, translationY);
+        let ratio = Math.sqrt(1 - Math.abs((y - ty) / stretchY));
+        if (this.isDamping('translate')) {
+          const v = ratio * ((2 * Math.abs(stretchY)) / duration);
+          y += height * Math.min(v / 20, 1 / 4) * (stretchY > 0 ? 1 : -1);
+          ratio = Math.sqrt(1 - Math.abs((y - ty) / stretchY));
+        }
+        t = Math.max(t * (1 - ratio), 400);
+      }
+      // y方向进行惯性位移
       transition
-        .apply(this, [true, { y: swipeY }, eOption.duration, eOption.fn])
+        .apply(this, [{ y }, { easing: easeOutQuad, duration: t }])
         .then(() => {
           // 惯性位移后超出边界，则归位
-          if (!inBoundary) {
-            transition.apply(this, [
-              true,
-              { y: between(swipeY, translationY) },
-            ]);
+          if (!isBetween(y, translationY)) {
+            transition.apply(this, [{ y: between(y, translationY) }]);
           }
         });
     } else {
-      // 如果已经在范围之外，就不再进行惯性位移，直接归位
-      transition.apply(this, [true, { y: between(y, translationY) }]);
+      // 直接归位
+      transition.apply(this, [{ y: between(ty, translationY) }]);
     }
   }
 };
@@ -323,18 +318,15 @@ const swipe = function swipe(this: ImageView, e: GEvent) {
 class ImageView {
   container: HTMLElement;
   element: HTMLElement;
-  damping: Damping[] | null = null;
-  dblScale: DblScale | (() => DblScale) | null = null; // 双击放大比例，如果是函数，调用函数获取
-  rotation: number[] | (() => number[]) | null = null; // 旋转范围
-  scalation: number[] | (() => number[]) | null = null; // 缩放范围
-  translation: (number[] | (() => number[]))[] | null = null; // 平移范围
-  _animation: Array<{ animation: Animation; stop: boolean }> | null = null; // 此刻正在进行的动画,stop:当前动画在触摸时是否可以停止
-  _transform: Transform | null = null; // 手势操作时的变换对象
-  _gesture: Gesture | null = null; // 手势对象
-  _startMoving: {
-    offset: number[]; // 初始偏移量
-    transform: Transform; // 初始变换
-  } | null = null; // 触摸移动时存储的初始值
+  damping: Damping[] = []; // 可以进行阻尼的变换
+  dblScale: DblScale | (() => DblScale) = {}; // 双击放大比例和是否调整放大时的中心点
+  rotation: number[] | (() => number[]) = []; // 旋转范围
+  scalation: number[] | (() => number[]) = []; // 缩放范围
+  translation: (number[] | (() => number[]))[] = []; // 平移范围
+  _fingers: number = 0; // 当单指放上去移动之后，再放手指移动，不会出现双指缩放旋转，会连续移动（一种感觉效果而已）
+  _gesture: Gesture; // 手势对象
+  _transform: Transform; // 当前手势操作之后的变换对象
+  _transition: Transition; // 当前渐变对象
   constructor({
     container,
     element,
@@ -351,6 +343,24 @@ class ImageView {
     this.setRotation(rotation); // 设置相同数字（比如0），则不允许旋转，该数字为初始旋转
     this.setScalation(scalation); // 设置相同数字（比如1），则不允许缩放，该数为初始缩放
     this.setTranslation(translation); // 设置相同数字（比如0），则不允许平移，该数为初始位置
+    const a = between(0, execute(this.rotation)); // 初始角度a
+    const k = between(1, execute(this.scalation)); // 初始比例k
+    const x = between(0, execute(this.translation[0], k)); // 初始位移x
+    const y = between(0, execute(this.translation[1], k)); //初始位移y
+    this._transform = new Transform({ a, k, x, y });
+    // 创建过渡
+    this._transition = new Transition({
+      element: this.element,
+      propertyName: 'transform',
+      propertyValue: new (class extends TAProperty {
+        toString() {
+          // 这里注意，在不存在任何过渡动画的时候，这里的this.value应该和上面的this._transform内的每项值应该是相等的
+          // 但是由于 0.1+0.2!==0.3 的问题，导致经过各种计算后，其值并不是完全相等，存在极小的精度问题
+          return new Transform(this.value).toString();
+        }
+      })(this._transform.toRaw()),
+    });
+    // 绑定手势
     const gesture = new Gesture(this.container);
     if (gesture.done()) {
       gesture.on('touchStart', touchStart.bind(this));
@@ -360,34 +370,13 @@ class ImageView {
       gesture.on('touchEnd', touchEnd.bind(this));
     }
     this._gesture = gesture;
-    this._transform = identity();
-    this._animation = [];
-    const [translationX, translationY] = this.translation || [];
-    transition.apply(this, [
-      false,
-      {
-        a: between(0, execute(this.rotation)),
-        k: between(1, execute(this.scalation)),
-        x: between(0, execute(translationX)),
-        y: between(0, execute(translationY)),
-      },
-      0,
-    ]);
   }
   destory() {
     // 销毁手势事件
-    if (this._gesture) {
-      this._gesture.destory();
-      this._gesture = null;
-    }
-    this._startMoving = null;
-    this._animation = null;
-    this._transform = null;
-    this.damping = null;
-    this.dblScale = null;
-    this.rotation = null;
-    this.scalation = null;
-    this.translation = null;
+    this._gesture.destory();
+  }
+  isDamping(key: Damping) {
+    return this.damping && this.damping.indexOf(key) !== -1;
   }
   setDamping(damping?: Damping[]) {
     if (damping) {
@@ -398,7 +387,7 @@ class ImageView {
   }
   setDblScale(k?: DblScale | number) {
     // 如果直接传入数字，那么adjust为false，value为传入的数字
-    if (k && isNumber(k) && k > 0) {
+    if (typeof k === 'number' && k > 0) {
       this.dblScale = {
         adjust: false,
         value: +k,
@@ -408,7 +397,7 @@ class ImageView {
     let adjust = true;
     if (k && typeof k !== 'number') {
       // 如果传入对象，且value是数字，那么adjust为传入的!!adjust，value为传入的value
-      if (k.value && isNumber(k.value) && k.value > 0) {
+      if (typeof k.value === 'number' && k.value > 0) {
         this.dblScale = {
           adjust: !!k.adjust,
           value: k.value,
@@ -439,7 +428,12 @@ class ImageView {
     };
   }
   setRotation(a?: number[]) {
-    if (a && isNumber(...a) && a[1] >= a[0]) {
+    if (
+      a &&
+      typeof a[0] === 'number' &&
+      typeof a[1] === 'number' &&
+      a[1] >= a[0]
+    ) {
       this.rotation = a; // 最大范围 -Infinity 到 + Infinity
       return;
     }
@@ -447,7 +441,13 @@ class ImageView {
     this.rotation = () => [0, 0]; // 如果设置不合理，则取默认
   }
   setScalation(k?: number[]) {
-    if (k && isNumber(...k) && k[1] >= k[0] && k[0] > 0) {
+    if (
+      k &&
+      typeof k[0] === 'number' &&
+      typeof k[1] === 'number' &&
+      k[1] >= k[0] &&
+      k[0] > 0
+    ) {
       this.scalation = k; // 最大范围 0 到 +Infinity (不等于0)
       return;
     }
@@ -459,15 +459,17 @@ class ImageView {
     this.setYTranslation(xy && xy[1]);
   }
   setXTranslation(x?: number[]) {
-    if (!this.translation) {
-      this.translation = [];
-    }
-    if (x && isNumber(...x) && x[1] >= x[0]) {
+    if (
+      x &&
+      typeof x[0] === 'number' &&
+      typeof x[1] === 'number' &&
+      x[1] >= x[0]
+    ) {
       this.translation[0] = x; // 最大范围 -Infinity 到 + Infinity
       return;
     }
     // 测微信得到的结论，边界范围是元素按照当前比例缩放后宽度和容器宽度之差，左右各一半的范围
-    this.translation[0] = (k: number = (this._transform || {}).k || 1) => {
+    this.translation[0] = (k: number = this._transform.k || 1) => {
       const { width: cw } = this.getContainerSize();
       const { width: ew } = this.getElClientSize();
       const bx = Math.max((ew * k - cw) / 2, 0);
@@ -475,23 +477,22 @@ class ImageView {
     };
   }
   setYTranslation(y?: number[]) {
-    if (!this.translation) {
-      this.translation = [];
-    }
-    if (y && isNumber(...y) && y[1] >= y[0]) {
+    if (
+      y &&
+      typeof y[0] === 'number' &&
+      typeof y[1] === 'number' &&
+      y[1] >= y[0]
+    ) {
       this.translation[1] = y; // 最大范围 -Infinity 到 +Infinity
       return;
     }
     // 测微信得到的结论，边界范围是元素按照当前比例缩放后高度和容器高度之差，上下各一半的范围
-    this.translation[1] = (k: number = (this._transform || {}).k || 1) => {
+    this.translation[1] = (k: number = this._transform.k || 1) => {
       const { height: ch } = this.getContainerSize();
       const { height: eh } = this.getElClientSize();
       const by = Math.max((eh * k - ch) / 2, 0);
       return [-by, by];
     };
-  }
-  isAnimating() {
-    return (this._animation || []).length > 0;
   }
   getElClientSize() {
     // 获取目标元素初始化设置的宽高（不是进行缩放后的宽高，也不是原始宽高）
@@ -518,6 +519,36 @@ class ImageView {
     // 获取容器中心点位置
     const { left, top, width, height } = this.container.getBoundingClientRect();
     return [left + width / 2, top + height / 2];
+  }
+  getCenterOffset(point: number[], k: number, adjust: boolean = false) {
+    const { k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+    const dk = k / tk;
+    const [cx, cy] = this.getContainerCenter();
+    let ox = point[0] - (cx + tx);
+    let oy = point[1] - (cy + ty);
+    if (adjust) {
+      // 思路：对元素进行划线分界
+      // 1，在元素上边的时候，用元素实际高度一半(eh/2)的基础上在除以双击比例 k 即 eh/2k 作为上分界线，分界线到元素上边缘区域内点击，全部视为在元素上边缘线上点击，即放大后元素上边缘会紧贴在容器上边缘
+      // 2，在元素下边的时候，先用容器的高(ch)比上元素实际高(eh)，即ch/eh（但是这个比例值只能在1和2之间（即只针对元素高小于容器高且大于容器高一半的情况）），用这个比例减去1/2k，得到的结果乘以元素实际高(eh)，再以此作为下分界线，分界线到元素下边缘区域内点击，全部视为在元素下边缘线上点击，即放大后元素下边缘会紧贴在容器下边缘
+      // 3，找出元素在不受偏移量和边界限制的影响下，点击元素中心点放大后，元素上下各存在一条界线正好与容器边缘重合，计算出该界线到中心点的距离，该距离一定是在元素中心点到元素边缘之间即0,ew/2之间，并且两条界线等距
+      // 4，在1，2中算出的上下分界线之间内点击，计算均匀分布对应到在3中算出的上下界线之间内点击，分界线中点处对应元素中点处，最后得到对应的偏移量oy
+      // 5，元素左右计算方式如同上下方式一样得到ox
+      // 测微信得到的结论
+      // 这个偏移量需要要向着边缘点发散
+      const { width: cw, height: ch } = this.getContainerSize();
+      const { width, height } = this.getElClientSize();
+      const ew = width / tk;
+      const eh = height / tk;
+      ox =
+        between(ew - (cw - ew) / (dk - 1), [0, ew]) *
+        ratioOffset(ox / ew, dk, between(cw / ew, [1, 2]));
+      oy =
+        between(eh - (ch - eh) / (dk - 1), [0, eh]) *
+        ratioOffset(oy / eh, dk, between(ch / eh, [1, 2]));
+    }
+    ox *= 1 - dk;
+    oy *= 1 - dk;
+    return [ox, oy];
   }
   // 负数顺时针，正数逆时针
   rotate(a: number) {
@@ -561,81 +592,95 @@ class ImageView {
     // 直接竖向平移到 y
     return this.transformTo({ y });
   }
-  transform(transform: Transform, point?: number[]) {
-    // 以point为聚焦点，在原来的基础上变换transform
-    const {
-      a: ta = 0,
-      k: tk = 1,
-      x: tx = 0,
-      y: ty = 0,
-    } = this._transform || {};
-    let { a, k, x, y } = transform;
-    if (isNumber(a)) {
-      a = (a as number) + ta;
+  transform(
+    transformRaw: TransformRaw,
+    point?: number[] | TAIOptions,
+    options?: TAIOptions,
+  ) {
+    const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+    let { a, k, x, y } = transformRaw;
+    if (typeof a === 'number') {
+      a += ta;
     }
-    if (isNumber(k)) {
-      k = (k as number) * tk;
+    if (typeof k === 'number') {
+      k *= tk;
     }
-    if (isNumber(x)) {
-      x = (x as number) + tx;
+    if (typeof x === 'number') {
+      x += tx;
     }
-    if (isNumber(y)) {
-      y = (y as number) + ty;
+    if (typeof y === 'number') {
+      y += ty;
     }
-    return this.transformTo({ a, k, x, y }, point);
+    return this.transformTo({ a, k, x, y }, point, options);
   }
-  transformTo(transform: Transform, point?: number[]) {
-    if ((this._animation || []).length > 0) {
-      // 若存在正在进行的渐变动画，则不做任何操作
-      return;
+  transformTo(
+    transformRaw: TransformRaw,
+    point?: number[] | TAIOptions,
+    options?: TAIOptions,
+  ) {
+    let _point = point;
+    let _options = options;
+    if (!options && !Array.isArray(point)) {
+      _options = point;
+      _point = undefined;
     }
-    // 以point为聚焦点，直接变换到transform
-    const { k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform || {};
     const { rotation, scalation, translation } = this;
-    const [translationX, translationY] = translation || [];
-    let { a, k, x, y } = transform;
-    if (isNumber(a)) {
-      a = between(a as number, execute(rotation));
+    const [translationX, translationY] = translation;
+    const { a: _a, k: _k, x: _x, y: _y } = transformRaw;
+    const _transformRaw: TransformRaw = {};
+    if (typeof _a === 'number') {
+      _transformRaw.a = between(_a, execute(rotation));
     }
-    if (isNumber(k)) {
-      k = between(k as number, execute(scalation));
-      const [cx, cy] = this.getContainerCenter();
-      let offset = [0, 0];
-      if (point && isNumber(...point)) {
-        offset = [point[0] - (cx + tx), point[1] - (cy + ty)];
-      }
-      const d = 1 - k / tk;
-      const ox = offset[0] * d;
-      const oy = offset[1] * d;
-      if (isNumber(x)) {
-        x = between((x as number) + ox, execute(translationX, k));
+    if (typeof _k === 'number') {
+      const k = (_transformRaw.k = between(_k, execute(scalation)));
+      if (Array.isArray(_point)) {
+        const [ox, oy] = this.getCenterOffset(_point, k);
+        const { x: tx = 0, y: ty = 0 } = this._transform;
+        _transformRaw.x = between(
+          (typeof _x === 'number' ? _x : tx) + ox,
+          execute(translationX, k),
+        );
+        _transformRaw.y = between(
+          (typeof _y === 'number' ? _y : ty) + oy,
+          execute(translationY, k),
+        );
       } else {
-        x = between(tx + ox, execute(translationX, k));
-      }
-      if (isNumber(y)) {
-        y = between((y as number) + oy, execute(translationY, k));
-      } else {
-        y = between(ty + oy, execute(translationY, k));
+        if (typeof _x === 'number') {
+          _transformRaw.x = between(_x, execute(translationX, k));
+        }
+        if (typeof _y === 'number') {
+          _transformRaw.y = between(_y, execute(translationY, k));
+        }
       }
     } else {
-      if (isNumber(x)) {
-        x = between(x as number, execute(translationX, tk));
+      if (typeof _x === 'number') {
+        _transformRaw.x = between(_x, execute(translationX));
       }
-      if (isNumber(y)) {
-        y = between(y as number, execute(translationY, tk));
+      if (typeof _y === 'number') {
+        _transformRaw.y = between(_y, execute(translationY));
       }
     }
-    return transition.apply(this, [false, { a, k, x, y }]);
+    return transition.apply(this, [
+      _transformRaw,
+      {
+        cancel: false,
+        ...(_options || {}),
+      },
+    ]);
+  }
+  transforming() {
+    return this._transition.transitioning();
   }
 }
+
 export type Damping = 'rotate' | 'scale' | 'translate';
 export type DblScale = { adjust?: boolean; value?: number };
 export type IOption = {
   container: HTMLElement;
   element: HTMLElement;
   dblScale?: number | DblScale; // 双击放大比例
-  scalation?: number[]; // 缩放范围 [0.1, 10]，最小比例0.1和最大比例10
   damping?: Damping[]; // 哪些操作超出边界可以进行阻尼效果，如果对rotate,scale,translate设置了无边界限制(Infinity)，则阻尼无效
+  scalation?: number[]; // 缩放范围 [0.1, 10]，最小比例0.1和最大比例10
   translation?: number[][]; // 平移范围 [[-10, 20], [-20, 10]]，x最小-10，最大20，y最小-20，最大10
   rotation?: number[]; // 旋转范围 [-10, 20]，逆时针可旋转20度和顺时针可旋转10度
 };
