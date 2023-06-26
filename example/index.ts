@@ -2,10 +2,11 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-21 15:08:59
+ * @LastEditTime: 2023-06-26 10:38:55
  * @Description: ******
  */
 import ImageView from '../src/index';
+import Swiper from '../src/swiper';
 import './index.less';
 
 const view = document.querySelector('.image-view') as HTMLElement;
@@ -66,7 +67,13 @@ if (view) {
   (document.querySelector('#sleep') as HTMLElement).onclick = () => {
     image._transition._animation[0].animation.sleep(3000);
   }; */
+  let swiper: Swiper | null = null;
   (document.querySelector('#click') as HTMLElement).onclick = () => {
+    if (swiper) {
+      swiper.destory();
+      swiper.element.style.zIndex = '-1';
+      swiper = null;
+    }
     /* image._transition.apply(
       { x: 410 },
       {
@@ -90,6 +97,26 @@ if (view) {
       image.transformOK({ x: 50 });
       image.transformOK({ y: 100 });
     }, 2600); */
+  };
+  (document.querySelector('#clear') as HTMLElement).onclick = () => {
+    const v1 = view.cloneNode() as HTMLElement;
+    v1.appendChild(img.cloneNode());
+    v1.classList.remove('image-view');
+    const v2 = view.cloneNode() as HTMLElement;
+    v2.appendChild(img.cloneNode());
+    v2.classList.remove('image-view');
+    const v3 = view.cloneNode() as HTMLElement;
+    v3.appendChild(img.cloneNode());
+    v3.classList.remove('image-view');
+    swiper = new Swiper({
+      container: document.querySelector('.swiper') as HTMLElement,
+      children: [v1, v2, v3],
+    });
+    swiper.element.style.zIndex = '1';
+    setTimeout(() => {
+      swiper && swiper.slide(1);
+    }, 1000);
+    (document.querySelector('#log') as HTMLElement).innerHTML = '';
   };
 
   /*

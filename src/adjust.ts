@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-21 13:34:18
+ * @LastEditTime: 2023-06-26 09:47:26
  * @Description: ******
  */
 
@@ -75,4 +75,24 @@ export function easeOutQuad(t: number) {
 }
 export function easeOutQuart(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t) * (1 - t);
+}
+
+export function setStyle(
+  ele: HTMLElement,
+  css: { [key: string]: string | number | undefined },
+) {
+  if (ele) {
+    Object.keys(css).forEach((k: string) => {
+      if (typeof css[k] === 'undefined') {
+        return;
+      }
+      const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+      const val =
+        typeof css[k] === 'number' && key !== 'z-index' && key !== 'opacity'
+          ? `${css[k]}px`
+          : String(css[k]);
+      ele.style.setProperty(key, val);
+    });
+  }
+  return ele;
 }

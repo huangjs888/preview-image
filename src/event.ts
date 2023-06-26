@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-05-09 14:46:25
+ * @LastEditTime: 2023-06-25 10:29:03
  * @Description: ******
  */
 
@@ -92,7 +92,7 @@ export default class EventTarget<T extends string, E> {
       }
     }
   }
-  trigger(type: T, event: E) {
+  emit(type: T, event: E) {
     const events = this.events[type];
     if (events) {
       // 循环执行事件池里的事件

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-21 15:03:04
+ * @LastEditTime: 2023-06-25 15:37:08
  * @Description: ******
  */
 
@@ -390,7 +390,7 @@ class ImageView {
     if (typeof k === 'number' && k > 0) {
       this.dblScale = {
         adjust: false,
-        value: +k,
+        value: k,
       };
       return;
     }
