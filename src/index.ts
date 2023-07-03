@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-25 15:37:08
+ * @LastEditTime: 2023-07-03 16:31:45
  * @Description: ******
  */
 
@@ -66,25 +66,23 @@ function transition(
     });
 }
 const touchStart = function touchStart(this: ImageView, e: GEvent) {
-  if (e.sourceEvent.touches.length > 1) {
+  if (e.sourceEvent.touches.length > 1 && this._fingers === 0) {
     // 当单指未触发移动，接着放了另外的手指，则认为开启了双指操作，手指为2个
-    if (this._fingers === 0) {
-      this._fingers = 2;
-    }
+    this._fingers = 2;
   }
-  const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
+  let { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this._transform;
   this._transition.cancel().forEach((value) => {
     // 取消动画（返回值是动画未执行的部分）后应该把this._transform内的值减掉还未执行的部分
     Object.keys(value).forEach((key) => {
       const val = value[key];
       if (key === 'a') {
-        this._transform.a = ta - val;
+        this._transform.a = ta -= val;
       } else if (key === 'k') {
-        this._transform.k = tk - val;
+        this._transform.k = tk -= val;
       } else if (key === 'x') {
-        this._transform.x = tx - val;
+        this._transform.x = tx -= val;
       } else if (key === 'y') {
-        this._transform.y = ty - val;
+        this._transform.y = ty -= val;
       }
     });
     // 曲线救国 1：

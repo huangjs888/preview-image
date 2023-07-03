@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-26 09:41:58
+ * @LastEditTime: 2023-07-03 15:26:22
  * @Description: ******
  */
 
@@ -32,7 +32,7 @@ function touchstarted(this: Gesture, event: TouchEvent) {
     return;
   }
   event.preventDefault();
-  event.stopImmediatePropagation();
+  event.stopPropagation();
   const newEvent: GEvent = {
     currentTarget: this.element,
     sourceEvent: event,
@@ -127,15 +127,12 @@ function touchmoved(this: Gesture, event: TouchEvent) {
     return;
   }
   event.preventDefault();
-  event.stopImmediatePropagation();
+  event.stopPropagation();
   const newEvent: GEvent = {
     currentTarget: this.element,
     sourceEvent: event,
     timestamp: Date.now(),
     point: [0, 0],
-    preventDefault: () => event.preventDefault(),
-    stopPropagation: () => event.stopPropagation(),
-    stopImmediatePropagation: () => event.stopImmediatePropagation(),
   };
   // 循环更新手指
   for (let i = 0, len = touches.length; i < len; ++i) {
@@ -257,8 +254,7 @@ function touchended(this: Gesture, event: TouchEvent) {
   if (!touches) {
     return;
   }
-  event.preventDefault();
-  event.stopImmediatePropagation();
+  event.stopPropagation();
   const newEvent: GEvent = {
     currentTarget: this.element,
     sourceEvent: event,
@@ -400,8 +396,7 @@ function touchended(this: Gesture, event: TouchEvent) {
 }
 
 function touchcanceled(this: Gesture, event: TouchEvent) {
-  event.preventDefault();
-  event.stopImmediatePropagation();
+  event.stopPropagation();
   this.emit('touchCancel', {
     currentTarget: this.element,
     point: [],
@@ -513,6 +508,7 @@ class Gesture extends EventTarget<GType, GEvent> {
     }
   }
 }
+export type Direction = 'Left' | 'Right' | 'Up' | 'Down' | 'None';
 
 export type GType =
   | 'pan' // 单指平移
@@ -551,12 +547,12 @@ export type GEvent = {
   angle?: number; // 移动的旋转角度（和上一个点比较）swipe角度
   deltaX?: number; // x方向移动的距离（和上一个点比较）
   deltaY?: number; // y方向移动的距离（和上一个点比较）
-  direction?: string; // 移动时的方向（和上一个点比较）swipe方向
+  direction?: Direction; // 移动时的方向（和上一个点比较）swipe方向
   moveScale?: number; // 移动的缩放比例（和起点比较）
   moveAngle?: number; // 移动的旋转角度（和起点比较）
   moveX?: number; // x方向移动的距离（和起点比较）
   moveY?: number; // y方向移动的距离（和起点比较）
-  moveDirection?: string; // 移动时的方向（和起点比较）
+  moveDirection?: Direction; // 移动时的方向（和起点比较）
   velocity?: number; // swipe阶段速率（不是从起点到终点的速率）
   waitTime?: number; // 长按等待时间
   delayTime?: number; // 点击延迟时间
