@@ -2,14 +2,40 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-17 16:49:24
+ * @LastEditTime: 2023-07-06 14:29:55
  * @Description: ******
  */
 
+const fs = require('fs');
 // const webpack = require('webpack');
 const resolve = require('path').resolve;
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+// 解析流的读取，request和response实际也是流的示例
+const resolveStream = (stream) =>
+  new Promise((resolve2, reject) => {
+    const buffers = [];
+    // 每读一块数据触发data事件，chunk是Buffer实例
+    stream.on('data', (chunk) => buffers.push(chunk));
+    // 读完数据，触发end事件，这里可以处理结束逻辑
+    stream.on('end', () => resolve2(Buffer.concat(buffers)));
+    stream.on('error', (e) => reject(e));
+  });
+// 读取文件流
+const readFileStream = (filePath) =>
+  new Promise((resolve2, reject) =>
+    fs.promises
+      // 检查文件是否可读
+      .access(filePath, fs.constants.R_OK)
+      .then(() =>
+        // 解析文件流
+        resolveStream(fs.createReadStream(filePath))
+          .then((buffer) => resolve2(buffer))
+          .catch((e) => reject(e)),
+      )
+      .catch(() => reject(new Error(`Cannot read file:${filePath}`))),
+  );
 
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production';
@@ -120,6 +146,55 @@ module.exports = (env, argv) => {
       // new webpack.HotModuleReplacementPlugin(),
     ],
     devServer: {
+      onBeforeSetupMiddleware: function (devServer) {
+        if (!devServer) {
+          throw new Error('webpack-dev-server is not defined');
+        }
+        devServer.app.get('/http/maxAge0', function (req, res) {
+          res.setHeader('Cache-Control', 'max-age=0');
+          res.json({ custom: 'max-age=0' });
+        });
+        devServer.app.get('/http/mageAge1', function (req, res) {
+          res.setHeader('Cache-Control', 'max-age=31536000');
+          res.json({ custom: 'max-age=31536000' });
+        });
+        devServer.app.get('/http/noCache', function (req, res) {
+          res.setHeader('Cache-Control', 'no-cache');
+          res.json({ custom: 'no-cache' });
+        });
+        devServer.app.get('/http/noStore', function (req, res) {
+          res.setHeader('Cache-Control', 'no-store');
+          res.json({ custom: 'no-store' });
+        });
+        devServer.app.get('/http/private', function (req, res) {
+          res.setHeader('Cache-Control', 'private');
+          res.json({ custom: 'private' });
+        });
+        devServer.app.get('/http/public', function (req, res) {
+          res.setHeader('Cache-Control', 'public');
+          res.json({ custom: 'public' });
+        });
+        devServer.app.get('/http/noStoreImage', function (req, res) {
+          res.setHeader('Content-Type', 'image/*');
+          res.setHeader('Cache-Control', 'no-store');
+          readFileStream(resolve(__dirname, 'image/ok.jpg')).then(
+            (finalData) => {
+              res.write(finalData);
+              res.end();
+            },
+          );
+        });
+        devServer.app.get('/http/maxAgeImage', function (req, res) {
+          res.setHeader('Content-Type', 'image/*');
+          res.setHeader('Cache-Control', 'max-age=31536000');
+          readFileStream(resolve(__dirname, 'image/ok.jpg')).then(
+            (finalData) => {
+              res.write(finalData);
+              res.end();
+            },
+          );
+        });
+      },
       static: false /* {
         // 该配置项允许配置从目录提供静态文件的选项
         directory: resolve(__dirname, './build'), // 静态文件目录

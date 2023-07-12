@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-06-21 13:23:30
+ * @LastEditTime: 2023-07-12 15:53:32
  * @Description: ******
  */
 
@@ -14,7 +14,8 @@ interface TIValue {
 export type TAIOptions = AIOptions & {
   cancel?: boolean; // 该过渡过程是否可以取消
   precision?: TIValue; // 传入精度，如果变化值小于这个精度，就不再动画，直接赋值
-  transition?: (v: TIValue) => void; // 过渡时每一帧的事件函数
+  before?: (p: number, v: TIValue) => void | boolean; // 过渡时每一帧执行之前
+  after?: (p: number, v: TIValue) => void; // 过渡时每一帧执行之后
 };
 
 export abstract class TAProperty {
@@ -63,7 +64,8 @@ export default class Transition {
     return new Promise<TIValue>((resolve) => {
       const {
         precision = {},
-        transition = () => {},
+        before = () => {},
+        after = () => {},
         cancel = true,
         ...restOptions
       } = options;
@@ -102,9 +104,12 @@ export default class Transition {
             }
             remainValue[key] = unconsumed;
           });
-          // 每帧动画后应用到元素并执行帧回调
-          element.style.setProperty(propertyName, propertyValue.toString());
-          transition(propertyValue.value);
+          const next = before(progress, propertyValue.value);
+          if (typeof next === 'undefined' || next) {
+            // 每帧动画后应用到元素并执行帧回调
+            element.style.setProperty(propertyName, propertyValue.toString());
+            after(progress, propertyValue.value);
+          }
           if (progress === 1) {
             // 动画结束后删除集合中的这个动画对象
             const index = this._animation.findIndex(
@@ -118,9 +123,12 @@ export default class Transition {
           }
         });
       } else {
-        // 不存在需要执行动画的增量(小于精度的)，就直接将精度筛选时累加的值应用到元素并执行帧回调
-        element.style.setProperty(propertyName, propertyValue.toString());
-        transition(propertyValue.value);
+        const next = before(1, propertyValue.value);
+        if (typeof next === 'undefined' || next) {
+          // 不存在需要执行动画的增量(小于精度的)，就直接将精度筛选时累加的值应用到元素并执行帧回调
+          element.style.setProperty(propertyName, propertyValue.toString());
+          after(1, propertyValue.value);
+        }
         resolve(propertyValue.value);
       }
     });
