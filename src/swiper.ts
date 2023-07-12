@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-12 17:08:11
+ * @LastEditTime: 2023-07-12 17:54:30
  * @Description: ******
  */
 
@@ -155,12 +155,15 @@ const touchMove = function touchMove(this: Swiper, e: GEvent) {
 };
 const touchEnd = function touchEnd(this: Swiper, e: GEvent) {
   const { toucheIds } = e;
+  // 这里暂存一下，不然后需要用到this._moveTarget，不然提前重置了
+  const target = this._moveTarget;
   if (toucheIds.length === 0) {
-    // 抬起最后一根手指时，重置_fgBehavior
+    // 抬起最后一根手指时，重置_fgBehavior和_moveTarget
     this._fgBehavior = 0;
+    this._moveTarget = 'none';
   } else if (this._fgBehavior === 1) {
     // 微信这种情况下是slide了，其实我觉得吧，可以不用，影响不大
-    if (this._moveTarget === 'outside') {
+    if (target === 'outside') {
       this.slide(Math.round(-this._translate / this.getUnitSize()));
     }
     // 多指视作单指时，抬起非最后一根手指，不做任何操作
@@ -180,15 +183,11 @@ const touchEnd = function touchEnd(this: Swiper, e: GEvent) {
   }
   // 只有在swiper的时候才会下一张
   const index =
-    this._moveTarget === 'outside'
+    target === 'outside'
       ? -this._translate / this.getUnitSize()
       : this._activeIndex;
   // Math.round代表移动超过一半，就下一张，后续可以加入阈值参数判断, slide方法里会更新_activeIndex
   this.slide(Math.round(index));
-  if (toucheIds.length === 0) {
-    // 抬起最后一根手指时，重置_moveTarget
-    this._moveTarget = 'none';
-  }
 };
 const doubleTap = function doubleTap(this: Swiper, e: GEvent) {
   if (this.isTransitioning()) {
