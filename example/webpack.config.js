@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-06 14:29:55
+ * @LastEditTime: 2023-07-31 16:51:50
  * @Description: ******
  */
 
@@ -146,7 +146,7 @@ module.exports = (env, argv) => {
       // new webpack.HotModuleReplacementPlugin(),
     ],
     devServer: {
-      onBeforeSetupMiddleware: function (devServer) {
+      setupMiddlewares: function (middlewares, devServer) {
         if (!devServer) {
           throw new Error('webpack-dev-server is not defined');
         }
@@ -194,6 +194,7 @@ module.exports = (env, argv) => {
             },
           );
         });
+        return middlewares;
       },
       static: false /* {
         // 该配置项允许配置从目录提供静态文件的选项

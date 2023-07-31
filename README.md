@@ -2,25 +2,39 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-12 11:00:39
+ * @LastEditTime: 2023-07-31 17:22:35
  * @Description: ******
 -->
-## slide-view
-H5列表左右滑动操作
+## previewImage
+H5 预览图片
 ### 使用方法
 ```html
   <body>
-    <h2>滑动操作示例</h2>
-    <div class="image-view-example">
-      <div class="image-view-item"></div>
+    <div class="imglist">
+      <img class="img" src="/http/maxAgeImage" />
     </div>
   </body>
 ```
 ```javascript
 
-  import ImageView from '../lib';
+import previewImage from '@huangjs888/previewImage';
 
+const imgDoms = document.querySelectorAll('.img');
+const imgUrls = [];
+imgDoms.forEach((a) => {
+  const current = a.src;
+  imgUrls.push(current);
+  a.onclick = () => {
+    previewImage({
+      urls: imgUrls,
+      current,
+      showMenu: () => {
+        alert('showMenu');
+      },
+    });
+  };
+});
   
 ```
 
-在线预览地址:[https://huangjs888.github.io/slide-view/](https://huangjs888.github.io/slide-view/ "预览")
+在线预览地址:[https://huangjs888.github.io/previewImage/](https://huangjs888.github.io/previewImage/ "预览")

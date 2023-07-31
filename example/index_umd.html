@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 11:33:28
+ * @LastEditTime: 2023-07-31 17:31:56
  * @Description: ******
 -->
 <!DOCTYPE html>
@@ -13,7 +13,7 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scaleable=no"
       name="viewport" />
     <title>图片查看</title>
-    <script src="../dist/image-view.min.js"></script>
+    <script src="../dist/previewImage.min.js"></script>
     <style>
       html,
       body {
@@ -23,25 +23,60 @@
         padding: 0;
         overflow: hidden;
         overflow-y: auto;
-        background: #f0f0f0;
+        background-color: #006f66ab;
       }
-      h2 {
-        margin-top: 5px;
-        line-height: 24px;
-        text-align: center;
+      .imglist {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .img {
+        width: 320px;
+        margin: 12px;
       }
     </style>
   </head>
 
   <body>
-    <h2>图片查看示例</h2>
-    <div class="image-view-example">
-      <div class="image-view-item"></div>
+    <div class="imglist">
+      <img class="img" src="/http/maxAgeImage" />
+      <img
+        class="img"
+        src="https://github.githubassets.com/images/modules/site/home/globe.jpg" />
+      <img
+        class="img"
+        src="https://github.githubassets.com/images/modules/site/home-campaign/hero-bg.webp" />
+      <img
+        class="img"
+        src="https://react.docschina.org/images/home/community/react_india_hallway.webp" />
+      <img
+        class="img"
+        src="https://react.docschina.org/images/home/community/react_conf_nat.webp" />
+      <img
+        class="img"
+        src="https://react.docschina.org/images/home/conf2019/cover.svg" />
+      <img
+        class="img"
+        src="https://react.docschina.org/images/home/community/react_conf_hallway.webp" />
     </div>
-    <div id="info" class="item-div"></div>
     <script>
       (function () {
-
+        const imgDoms = document.querySelectorAll('.img');
+        const imgUrls = [];
+        imgDoms.forEach((a) => {
+          const current = a.src;
+          imgUrls.push(current);
+          a.onclick = () => {
+            window.PreviewImage.default({
+              urls: imgUrls,
+              current,
+              showMenu: () => {
+                sendMessage('showMenu');
+              },
+            });
+          };
+        });
       })();
     </script>
   </body>

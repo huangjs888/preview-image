@@ -999,6 +999,31 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@huangjs888/damping@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.npmmirror.com/@huangjs888/damping/-/damping-2.0.1.tgz#2b46b88472d6804d4e289545efbb8186b0dfa7b7"
+  integrity sha512-kHaYfvkqv1WcsA7W91wv6SzXs73CaaKcZbFyi61EwhAztVbltOfcpHbztFBJlpRp+laHOE/l9sMvQXTtBfpTUw==
+
+"@huangjs888/gesture@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/@huangjs888/gesture/-/gesture-1.1.1.tgz#562e3c720c1caa9a825cff90ef753fed16b6a3aa"
+  integrity sha512-J0NbNp8Fb33XTvKId++5fjKHUw9PWOqd8VNMrs1JGpcArCmt+SpoKsJLkM3VHpjjplS7qcbSAZ+9vtsY0phQPQ==
+
+"@huangjs888/load-image@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@huangjs888/load-image/-/load-image-1.0.3.tgz#4fc2e38553ec49d481146b801df75905b28b997c"
+  integrity sha512-HtkrpQg79uzuV/sYngvFUaiG6FYWY+gO2awPCaCu2hYoG6fP8lVJpYDRtIeBLUcU4JxIXGdM4XLmbzVKmLI6rg==
+
+"@huangjs888/transform@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@huangjs888/transform/-/transform-1.0.3.tgz#4183d8a7a142fe248ab79e7c903839e985907755"
+  integrity sha512-aiVW0pZ4DSPOrv5q8ZD6kybNx6b8B/Qm1m393v/QW/J/cAYYfcRKVLSUOLrGMkUkQl5QfKeQo9Lb9MZ88RtBhA==
+
+"@huangjs888/transition@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@huangjs888/transition/-/transition-1.0.3.tgz#e413222933c2ce2b6ac6d7111136fb169ced6e16"
+  integrity sha512-/Qxmc0LmzHmXhn+40RF5D+MFJRxxMahOSSK3ObZfAouS9gHCBwYHgHMGvgdnY9f5/C9XZnicakQYqCr/SeeEwQ==
+
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
   resolved "https://registry.npmmirror.com/@humanwhocodes/config-array/-/config-array-0.11.8.tgz#03595ac2075a4dc0f191cc2131de14fbd7d410b9"

@@ -1,7 +1,7 @@
 {
-  "name": "@huangjs888/image-view",
+  "name": "@huangjs888/preview-image",
   "version": "1.0.0",
-  "description": "Image viewer",
+  "description": "Preview Image",
   "main": "lib/index.js",
   "unpkg": "dist/image-view.min.js",
   "files": [
@@ -10,7 +10,7 @@
     "README.md"
   ],
   "exports": {
-    "umd": "./dist/image-view.min.js",
+    "umd": "./dist/previewImage.min.js",
     "default": "./lib/index.js"
   },
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/huangjs888/image-view.git"
+    "url": "git+https://github.com/huangjs888/previewImage.git"
   },
   "keywords": [
     "huangjs",
@@ -41,10 +41,16 @@
   "author": "Huangjs",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/huangjs888/image-view/issues"
+    "url": "https://github.com/huangjs888/previewImage/issues"
   },
-  "homepage": "https://github.com/huangjs888/image-view#readme",
-  "dependencies": {},
+  "homepage": "https://github.com/huangjs888/previewImage#readme",
+  "dependencies": {
+    "@huangjs888/damping": "^2.0.1",
+    "@huangjs888/gesture": "^1.1.1",
+    "@huangjs888/load-image": "^1.0.3",
+    "@huangjs888/transform": "^1.0.3",
+    "@huangjs888/transition": "^1.0.3"
+  },
   "devDependencies": {
     "@babel/cli": "^7.20.7",
     "@babel/core": "^7.20.12",

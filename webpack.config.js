@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-12 11:01:50
+ * @LastEditTime: 2023-07-31 17:19:40
  * @Description: ******
  */
 
@@ -24,12 +24,12 @@ module.exports = {
   }, */
   devtool: 'source-map',
   entry: {
-    'image-view': resolve(__dirname, 'src/index.ts'),
+    previewImage: resolve(__dirname, 'src/index.ts'),
   },
   output: {
     filename: '[name].min.js',
     library: {
-      name: 'ImageView', // window内或exports内存储的变量名称
+      name: 'PreviewImage', // window内或exports内存储的变量名称
       type: 'umd', // 使用通用模块定义（包含了AMD，CommonJs以及window内置）
     },
     path: resolve(__dirname, 'dist/'),
