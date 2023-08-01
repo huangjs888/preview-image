@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 16:59:15
+ * @LastEditTime: 2023-08-01 09:19:20
  * @Description: ******
  */
 
@@ -80,8 +80,12 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
           const rightDown = isRightDown(this._direction, movePoint, endPoint);
           // 单指行为时，根据图片位置，判断后续为外部swiper操作还是内部图片操作
           if (this._direction === 'vertical') {
-            // 曲线救国 4：这里使用内部参数，主要是计算移动角度
-            if (tx >= xRange[1] && rightDown) {
+            if (
+              this._events &&
+              typeof this._events.downSwipe === 'function' &&
+              tx >= xRange[1] &&
+              rightDown
+            ) {
               this._moveTarget = 'closures';
             } else {
               // 如果x的范围是[0,0]，则判断上下移动，直接根据deltaY的正负
@@ -99,8 +103,12 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
               }
             }
           } else {
-            // 曲线救国 4：这里使用内部参数，主要是计算移动角度
-            if (ty >= yRange[1] && rightDown) {
+            if (
+              this._events &&
+              typeof this._events.downSwipe === 'function' &&
+              ty >= yRange[1] &&
+              rightDown
+            ) {
               this._moveTarget = 'closures';
             } else {
               // 如果y的范围是[0,0]，则判断左右移动，直接根据deltaX的正负
@@ -171,8 +179,12 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
       }
     } else {
       if (this._moveTarget === 'none') {
-        const rightDown = isRightDown(this._direction, movePoint, endPoint);
-        this._moveTarget = rightDown ? 'closures' : 'outside';
+        this._moveTarget =
+          this._events &&
+          typeof this._events.downSwipe === 'function' &&
+          isRightDown(this._direction, movePoint, endPoint)
+            ? 'closures'
+            : 'outside';
       }
     }
     if (this._moveTarget === 'closures') {

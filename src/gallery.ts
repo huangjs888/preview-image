@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 17:33:24
+ * @LastEditTime: 2023-08-01 09:19:59
  * @Description: ******
  */
 import Gesture from '@huangjs888/gesture';
@@ -199,7 +199,7 @@ class Gallery {
       }
       this._activeIndex = _index;
       loadImage(this._images[_index]).then(
-        // lazy的时候，滑到这里才加载片，所以加载成功后需要计算该图片尺寸
+        // lazy的时候，滑到这里才加载图片，所以加载成功后需要计算该图片尺寸
         (okay) => okay && this.resetItemSize(_index),
       );
     }
