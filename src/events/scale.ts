@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 12:30:28
+ * @LastEditTime: 2023-08-03 16:23:15
  * @Description: ******
  */
 
@@ -10,11 +10,16 @@ import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
 import SingleGallery from '../singleGallery';
 
-export default function doubleTap(this: Gallery | SingleGallery, e: GEvent) {
+export default function scale(this: Gallery | SingleGallery, e: GEvent) {
   if (this._isClose) {
     return;
   }
-  const point = e.point[2];
+  // 只有鼠标操作才可以，touch操作被放入到pointerMove中了
+  if (this._gesture && this._gesture.isTouch()) {
+    return;
+  }
+  // const point = e.point[2];
+  const { scale: k = 1 } = e;
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
       return;
@@ -29,7 +34,12 @@ export default function doubleTap(this: Gallery | SingleGallery, e: GEvent) {
         if (entity.isTransitioning()) {
           return;
         }
-        entity.dblScale(point);
+        // 表示停止缩放，应该重置
+        if (isNaN(k)) {
+          entity.resetBounce();
+        } else {
+          entity.moveBounce(0, k, 0, 0 /* , point */);
+        }
       }
     }
   } else {
@@ -38,7 +48,12 @@ export default function doubleTap(this: Gallery | SingleGallery, e: GEvent) {
       if (entity.isTransitioning()) {
         return;
       }
-      entity.dblScale(point);
+      // 表示停止缩放，应该重置
+      if (isNaN(k)) {
+        entity.resetBounce();
+      } else {
+        entity.moveBounce(0, k, 0, 0 /* , point */);
+      }
     }
   }
 }

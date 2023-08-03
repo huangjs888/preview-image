@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-01 09:19:20
+ * @LastEditTime: 2023-08-03 17:36:40
  * @Description: ******
  */
 
@@ -11,8 +11,9 @@ import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { between } from '../entity/utils';
 import Gallery from '../gallery';
 import SingleGallery from '../singleGallery';
-import { setStyle } from '../dom';
 
+const minScale = 0.3; // swipeClose下拉最小缩放比例
+const minOpacity = 0.01; // swipeClose下拉最小透明度
 const isRightDown = (
   direction: string,
   [x0, y0]: number[],
@@ -21,38 +22,21 @@ const isRightDown = (
   if (direction === 'vertical') {
     return Math.abs(x0 - x1) > 4 * Math.abs(y0 - y1) && x0 - x1 <= 0;
   } else {
-    console.log(
-      90 - (Math.atan(Math.abs(y0 - y1) / Math.abs(x0 - x1)) * 180) / Math.PI,
-    );
     return Math.abs(y0 - y1) > 4 * Math.abs(x0 - x1) && y0 - y1 <= 0;
   }
 };
 
-export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
-  const { toucheIds } = e;
-  if (this._fgBehavior === 0 && toucheIds.length === 1) {
+export default function pointerMove(this: Gallery | SingleGallery, e: GEvent) {
+  if (this._isClose) {
+    return;
+  }
+  if (this._fgBehavior === 0 && e.pointer.length === 1) {
     // 第一根手指放上去，然后直接移动，此时标记为1
     this._fgBehavior = 1;
   }
-  let oneFinger = false;
-  if (toucheIds.length === 1 || this._fgBehavior === 1) {
-    // 此时的多指move，视作单指move
-    // 曲线救国 2：这里使用注入设置，以达到使_rotateAngle不为number，避免了双指旋转
-    if (this._gesture) {
-      this._gesture._rotateAngle = null;
-    }
-    oneFinger = true;
-  }
-  const {
-    direction,
-    movePoint,
-    endPoint,
-    point,
-    angle = 0,
-    scale = 1,
-    deltaX = 0,
-    deltaY = 0,
-  } = e;
+  this._onePoint = e.pointer.length === 1 || this._fgBehavior === 1;
+  const [_, point0, point] = e.point;
+  const { direction, angle = 0, scale = 1, deltaX = 0, deltaY = 0 } = e;
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
       return;
@@ -73,19 +57,14 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
       if (this._moveTarget === 'none') {
         // 多指或者不满足以下条件的，则做图片操作
         this._moveTarget = 'inside';
-        if (oneFinger) {
+        if (this._onePoint) {
           // 是否是边缘图片
           const isFirst = this._activeIndex === 0;
           const isLast = this._activeIndex === length - 1;
-          const rightDown = isRightDown(this._direction, movePoint, endPoint);
+          const rightDown = isRightDown(this._direction, point0, point);
           // 单指行为时，根据图片位置，判断后续为外部swiper操作还是内部图片操作
           if (this._direction === 'vertical') {
-            if (
-              this._events &&
-              typeof this._events.downSwipe === 'function' &&
-              tx >= xRange[1] &&
-              rightDown
-            ) {
+            if (this._swipeClose && tx >= xRange[1] && rightDown) {
               this._moveTarget = 'closures';
             } else {
               // 如果x的范围是[0,0]，则判断上下移动，直接根据deltaY的正负
@@ -103,12 +82,7 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
               }
             }
           } else {
-            if (
-              this._events &&
-              typeof this._events.downSwipe === 'function' &&
-              ty >= yRange[1] &&
-              rightDown
-            ) {
+            if (this._swipeClose && ty >= yRange[1] && rightDown) {
               this._moveTarget = 'closures';
             } else {
               // 如果y的范围是[0,0]，则判断左右移动，直接根据deltaX的正负
@@ -142,7 +116,7 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
         } else {
           _deltaX += diff;
         }
-        if (oneFinger) {
+        if (this._onePoint) {
           let _delta = 0;
           if (this._direction === 'vertical') {
             _delta = _deltaY;
@@ -162,14 +136,14 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
             _delta -= _deltaX;
           }
           // 内部图片需要移动的距离
-          entity.move(point, 0, 1, _deltaX, _deltaY);
+          entity.moveBounce(0, 1, _deltaX, _deltaY, point);
           // 外部swiper需要移动的距离
           this.transitionRun(
             translate + performDamping(_delta, { max: this.getItemSize() }),
             { duration: 0 },
           );
         } else {
-          entity.move(point, angle, scale, _deltaX, _deltaY);
+          entity.moveBounce(angle, scale, _deltaX, _deltaY, point);
           if (diff !== 0) {
             // 多指移动前，将外部swiper移动的部分归位（内部image会把swiper的距离加进去）
             this.transitionRun(translate, { duration: 0 });
@@ -180,54 +154,44 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
     } else {
       if (this._moveTarget === 'none') {
         this._moveTarget =
-          this._events &&
-          typeof this._events.downSwipe === 'function' &&
-          isRightDown(this._direction, movePoint, endPoint)
+          this._swipeClose && isRightDown(this._direction, point0, point)
             ? 'closures'
             : 'outside';
       }
     }
     if (this._moveTarget === 'closures') {
-      if (this.container && this._rectSize) {
-        const { moveX = 0, moveY = 0 } = e;
-        const { width, height, left, top } = this._rectSize;
-        let sk = 1;
-        if (this._direction === 'vertical') {
-          sk = width === 0 ? 0 : moveX / width;
-        } else {
-          sk = height === 0 ? 0 : moveY / height;
+      const { moveX = 0, moveY = 0 } = e;
+      const { width = 0, height = 0, left = 0, top = 0 } = this._rectSize || {};
+      const k = Math.min(
+        Math.max(
+          1 -
+            ((this._direction === 'vertical'
+              ? moveX / width
+              : moveY / height) || 0),
+          minScale,
+        ),
+        1,
+      );
+      const o =
+        minOpacity + ((k - minScale) * (1 - minOpacity)) / (1 - minScale);
+      let x = 0;
+      let y = 0;
+      if (wrapper) {
+        let _x = 0;
+        let _y = 0;
+        let _k = 1;
+        if (wrapper.style.transform) {
+          const styles = wrapper.style.transform.split('(');
+          const [xs, ys] = styles[1].split(')')[0].split(',');
+          const ks = styles[2].split(')')[0];
+          _x = parseFloat(xs);
+          _y = parseFloat(ys);
+          _k = parseFloat(ks);
         }
-        const nk = Math.min(Math.max(1 - sk, 0.3), 1);
-        if (wrapper) {
-          let x = 0;
-          let y = 0;
-          let k = 1;
-          if (wrapper.style.transform) {
-            const styles = wrapper.style.transform.split('(');
-            const [xs, ys] = styles[1].split(')')[0].split(',');
-            const ks = styles[2].split(')')[0];
-            x = parseFloat(xs);
-            y = parseFloat(ys);
-            k = parseFloat(ks);
-          }
-          let ox = point[0] - (x + left + width / 2);
-          let oy = point[1] - (y + top + height / 2);
-          const dk = nk / k;
-          ox *= 1 - dk;
-          oy *= 1 - dk;
-          setStyle(wrapper, {
-            overflow: '',
-            transform: `translate(${x + deltaX + ox}px,${
-              y + deltaY + oy
-            }px) scale(${nk})`,
-            transition: 'none',
-          });
-        }
-        setStyle(this.container, {
-          background: `rgba(0,0,0,${(nk - 0.3) / 0.7})`,
-          transition: 'none',
-        });
+        x = _x + deltaX + (point[0] - (_x + left + width / 2)) * (1 - k / _k);
+        y = _y + deltaY + (point[1] - (_y + top + height / 2)) * (1 - k / _k);
       }
+      this.originTransform(x, y, k, o, 0);
       return;
     }
     // 非内部图片操作，均是外部swiper操作
@@ -249,12 +213,12 @@ export default function touchMove(this: Gallery | SingleGallery, e: GEvent) {
       if (entity.isTransitioning()) {
         return;
       }
-      if (oneFinger) {
+      if (this._onePoint) {
         // 实现单指move
-        entity.move(point, 0, 1, deltaX, deltaY);
+        entity.moveBounce(0, 1, deltaX, deltaY, point);
       } else {
         // 双指move
-        entity.move(point, angle, scale, deltaX, deltaY);
+        entity.moveBounce(angle, scale, deltaX, deltaY, point);
       }
     }
   }

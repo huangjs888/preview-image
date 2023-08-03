@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 17:09:06
+ * @LastEditTime: 2023-08-03 15:34:16
  * @Description: ******
  */
 
@@ -135,11 +135,7 @@ class Entity {
         elementWidth: width,
         elementHeight: height,
       };
-      const a = between(0, this.getRotation()); // 初始角度a
-      const k = between(1, this.getScalation()); // 初始比例k
-      const x = between(0, this.getXTranslation(k)); // 初始位移x
-      const y = between(0, this.getYTranslation(k)); //初始位移y
-      this.transitionRun({ a, k, x, y }, { duration: 0 });
+      this.reset();
     }
   }
   setRotation(a?: number[]) {
@@ -462,6 +458,13 @@ class Entity {
   isTransitioning() {
     return this._transition.transitioning();
   }
+  reset(duration: number = 0) {
+    const a = between(0, this.getRotation()); // 初始角度a
+    const k = between(1, this.getScalation()); // 初始比例k
+    const x = between(0, this.getXTranslation(k)); // 初始位移x
+    const y = between(0, this.getYTranslation(k)); //初始位移y
+    this.transitionRun({ a, k, x, y }, { duration });
+  }
   computeOffset(point: number[], k: number, adjust: boolean = false) {
     const {
       containerCenter,
@@ -473,8 +476,8 @@ class Entity {
     const { k: tk = 1, x: tx = 0, y: ty = 0 } = this.getTransform();
     const dk = k / tk;
     const [cx, cy] = containerCenter;
-    let ox = point[0] - (cx + tx);
-    let oy = point[1] - (cy + ty);
+    let ox = (typeof point[0] === 'number' ? point[0] : cx) - (cx + tx);
+    let oy = (typeof point[1] === 'number' ? point[1] : cy) - (cy + ty);
     if (adjust) {
       // 思路：对元素进行划线分界
       // 1，在元素上边的时候，用元素实际高度一半(eh/2)的基础上在除以双击比例 k 即 eh/2k 作为上分界线，分界线到元素上边缘区域内点击，全部视为在元素上边缘线上点击，即放大后元素上边缘会紧贴在容器上边缘
@@ -499,12 +502,12 @@ class Entity {
     oy *= 1 - dk;
     return [ox, oy];
   }
-  move(
-    point: number[],
+  moveBounce(
     angle: number,
     scale: number,
     deltaX: number,
     deltaY: number,
+    point: number[] = [],
   ) {
     let { a = 0, k = 1, x = 0, y = 0 } = this.getTransform();
     const aRange = this.getRotation();
@@ -551,7 +554,7 @@ class Entity {
     }
     this.transitionRun({ a, k, x, y }, { duration: 0 });
   }
-  reset(point: number[] = [0, 0], cancel: boolean = false) {
+  resetBounce(point: number[] = [], cancel: boolean = false) {
     let { a = 0, k = 1, x = 0, y = 0 } = this.getTransform();
     // 若允许阻尼，首先应该先把当前值反算出阻尼之前的原值
     if (this.isDamping('rotate')) {
@@ -572,7 +575,7 @@ class Entity {
     } // 重置之前是双指移动，是不允许取消动画的
     this.transformTo({ a, k, x, y }, point, { cancel });
   }
-  dblScale(point: number[] = [0, 0]) {
+  dblScale(point: number[] = []) {
     // 这三个比例都是用保留三位小数的结果进行比较
     // 其实这里的3应该用1/屏幕的宽高算出的小数位数
     // 此刻比例和位移

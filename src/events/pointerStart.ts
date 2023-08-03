@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 13:44:30
+ * @LastEditTime: 2023-08-03 13:51:40
  * @Description: ******
  */
 
@@ -11,9 +11,11 @@ import { between, isBetween } from '../entity/utils';
 import Gallery from '../gallery';
 import SingleGallery from '../singleGallery';
 
-export default function touchStart(this: Gallery | SingleGallery, e: GEvent) {
-  const { toucheIds } = e;
-  if (this._fgBehavior === 0 && toucheIds.length > 1) {
+export default function pointerStart(this: Gallery | SingleGallery, e: GEvent) {
+  if (this._isClose) {
+    return;
+  }
+  if (this._fgBehavior === 0 && e.pointer.length > 1) {
     // 第一根手指放上去，紧接着再放一根手指（或者直接一下子放了两个手指），此时标记为2
     this._fgBehavior = 2;
   }
@@ -65,10 +67,9 @@ export default function touchStart(this: Gallery | SingleGallery, e: GEvent) {
       stopCount += entity.transitionCancel();
     }
   }
-
   if (stopCount > 0 && this._gesture) {
-    // 如果有动画停止，则本次点击或略，阻止所有单指点击相关事件
-    // 曲线救国 1：这里使用注入设置，以达到阻止的目的
+    // 如果有动画停止，则阻止所有单指点击相关事件（就像是移动了一下一样）
+    // 曲线救国：这里使用注入设置，以达到阻止的目的
     this._gesture._preventTap = true;
     this._gesture._preventSingleTap = true;
     this._gesture._preventDoubleTap = true;

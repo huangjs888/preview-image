@@ -2,10 +2,10 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 17:33:11
+ * @LastEditTime: 2023-08-02 10:54:32
  * @Description: ******
  */
-import Gallery from './gallery';
+import Gallery, { type SOption } from './gallery';
 import SingleGallery from './singleGallery';
 import Entity from './entity';
 import loadImage from './image';
@@ -29,27 +29,18 @@ export default function previewImage({
   urls: string[];
   current?: string;
   showMenu?: () => void;
-  direction?: 'horizontal' | 'vertical';
-  itemGap?: number;
-  hasIndicator?: boolean;
-  isLazy?: boolean;
-}) {
+} & SOption) {
   const index = !current ? 0 : urls.indexOf(current);
   const gallery = new Gallery({
     imageUrls: urls,
     activeIndex: index,
-    ...restOption,
-    longTap: () => {
+    longPress: () => {
       typeof showMenu === 'function' && showMenu();
     },
-    singleTap: () => {
+    press: () => {
       gallery.close();
     },
-    downSwipe: () => {
-      gallery.close();
-      // 阻止downSwipe后效果回弹
-      return true;
-    },
+    ...restOption,
   });
   gallery.open();
 }

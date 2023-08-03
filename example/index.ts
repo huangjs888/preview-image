@@ -2,16 +2,19 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 14:24:01
+ * @LastEditTime: 2023-08-03 15:56:54
  * @Description: ******
  */
 import previewImage /* , { Gallery, SingleGallery } */ from '../src';
 import './index.less';
 
-const sendMessage = (data: any) =>
+const sendMessage = (data: any) => {
   ((window as any).ReactNativeWebView || window).postMessage(
     JSON.stringify(data),
   );
+  // eslint-disable-next-line no-alert
+  window.alert(data);
+};
 
 const imgDoms = document.querySelectorAll('.img');
 const imgUrls: string[] = [];
@@ -19,12 +22,14 @@ imgDoms.forEach((a) => {
   const current = (a as HTMLImageElement).src;
   imgUrls.push(current);
   (a as HTMLElement).onclick = () => {
+    const { left, top, width, height } = a.getBoundingClientRect();
     previewImage({
       urls: imgUrls,
       current,
       showMenu: () => {
         sendMessage('showMenu');
       },
+      originRect: { left, top, width, height },
     });
   };
 });

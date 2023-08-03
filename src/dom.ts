@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-28 16:58:10
+ * @LastEditTime: 2023-08-03 17:24:30
  * @Description: ******
  */
 
@@ -15,19 +15,26 @@ export function setStyle(
   css: { [key: string]: string | number | undefined },
 ) {
   if (ele) {
+    let cssText = '';
     Object.keys(css).forEach((k: string) => {
-      if (typeof css[k] === 'undefined') {
-        return;
-      }
       const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
-      const val =
-        typeof css[k] === 'number' &&
-        /^[a-z]/.test(key) &&
-        autoPxReg.test(`-${key}`)
-          ? `${css[k]}px`
-          : String(css[k]);
-      ele.style.setProperty(key, val);
+      if (css[k] !== 0 && !css[k]) {
+        // 删除
+        ele.style.setProperty(key, '');
+      } else {
+        const suffix =
+          typeof css[k] === 'number' &&
+          /^[a-z]/.test(key) &&
+          autoPxReg.test(`-${key}`)
+            ? 'px'
+            : '';
+        const val = `${css[k]}${suffix}`;
+        cssText += `${key}:${val};`;
+      }
     });
+    if (cssText) {
+      ele.style.cssText += cssText;
+    }
   }
   return ele;
 }
@@ -51,7 +58,6 @@ export function createContainer(element?: HTMLElement | string) {
       zIndex: '9999',
       width: '100%',
       height: '100%',
-      background: 'black',
       overflow: 'hidden',
       display: 'none',
     });
@@ -65,13 +71,26 @@ export function createContainer(element?: HTMLElement | string) {
   return ele;
 }
 
-export function createContent(isVertical: boolean, element: HTMLElement) {
-  const contentEl = setStyle(document.createElement('div'), {
+export function createSubstance(isVertical: boolean, element: HTMLElement) {
+  const substance = setStyle(document.createElement('div'), {
     display: 'flex',
     flexDirection: isVertical ? 'column' : 'row',
   });
-  element.appendChild(contentEl);
-  return contentEl;
+  element.appendChild(substance);
+  return substance;
+}
+
+export function createBackdrop(background: string, element: HTMLElement) {
+  const backdrop = setStyle(document.createElement('div'), {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background,
+  });
+  element.appendChild(backdrop);
+  return backdrop;
 }
 
 export function createIndicator(
@@ -87,7 +106,7 @@ export function createIndicator(
       right: isVertical ? '16px' : 'auto',
       width: isVertical ? 'auto' : '100%',
       height: isVertical ? '100%' : 'auto',
-      display: 'flex',
+      display: 'none',
       flexDirection: isVertical ? 'column' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
@@ -97,7 +116,7 @@ export function createIndicator(
   return indicator;
 }
 
-export function createIndicatorItem(
+export function createItemIndicator(
   isVertical: boolean,
   element: HTMLElement | null,
 ) {
@@ -117,7 +136,7 @@ export function createIndicatorItem(
   return item;
 }
 
-export function createWrapper(
+export function createItemWrapper(
   isFirst: boolean,
   isVertical: boolean,
   hasLoading: boolean,
@@ -137,22 +156,26 @@ export function createWrapper(
     marginLeft: isVertical || isFirst ? 0 : itemGap,
   });
   if (hasLoading) {
-    const loading = setStyle(document.createElement('span'), {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      marginTop: -16,
-      marginLeft: -16,
-      width: 32,
-      height: 32,
-      display: 'inline-block',
-    });
-    loading.innerHTML = loadingIcon;
-    wrapper.appendChild(loading);
+    createLoading(wrapper);
   }
   element.appendChild(wrapper);
 
   return wrapper;
+}
+
+export function createLoading(element: HTMLElement) {
+  const loading = setStyle(document.createElement('span'), {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -16,
+    marginLeft: -16,
+    width: 32,
+    height: 32,
+    display: 'inline-block',
+  });
+  loading.innerHTML = loadingIcon;
+  element.appendChild(loading);
 }
 
 export function createError(element: HTMLElement) {

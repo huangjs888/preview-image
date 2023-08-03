@@ -10,7 +10,7 @@ import loadImage from '@huangjs888/load-image';
 import Entity, { type IOption } from './entity';
 import { createError } from './dom';
 
-export default function loadImage2(image: Image) {
+export default function (image: Image) {
   const { wrapper, entity, url, options } = image || {};
   // 未定义表示还未加载过图片，null表示已经加载了，只是还没加载完或加载失败
   if (typeof entity === 'undefined') {

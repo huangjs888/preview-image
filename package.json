@@ -46,7 +46,7 @@
   "homepage": "https://github.com/huangjs888/previewImage#readme",
   "dependencies": {
     "@huangjs888/damping": "^2.0.1",
-    "@huangjs888/gesture": "^1.1.1",
+    "@huangjs888/gesture": "^2.0.0",
     "@huangjs888/load-image": "^1.0.3",
     "@huangjs888/transform": "^1.0.3",
     "@huangjs888/transition": "^1.0.3"

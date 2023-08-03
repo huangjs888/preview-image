@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-01 09:16:55
+ * @LastEditTime: 2023-08-01 16:41:16
  * @Description: ******
  */
 
@@ -12,6 +12,9 @@ import Gallery from '../gallery';
 import SingleGallery from '../singleGallery';
 
 export default function swipe(this: Gallery | SingleGallery, e: GEvent) {
+  if (this._isClose) {
+    return;
+  }
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
       return;
@@ -119,14 +122,9 @@ export default function swipe(this: Gallery | SingleGallery, e: GEvent) {
         return;
       }
       // 如果滑动方向是向下的或向右的，执行关闭操作
-      if (
-        e.direction === 'Down' &&
-        this._events &&
-        typeof this._events.downSwipe === 'function'
-      ) {
-        if (this._events.downSwipe()) {
-          this._moveTarget = 'none';
-        }
+      if (this._swipeClose && e.direction === 'Down') {
+        this.close();
+        this._moveTarget = 'none';
       }
       return;
     }
