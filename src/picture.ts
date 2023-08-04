@@ -12,7 +12,7 @@ import {
 // 测试重复调用open，close等以及destory后，在调用方法，报啥错误？
 // 对于destory的，已经open的需要加个状态标记，同样的方法不该重复调用。
 
-class SingleGallery {
+class Picture {
   _container: HTMLElement | null = null;
   _backdrop: HTMLElement | null = null;
   _rectSize: RectSize | null = null; // 当前容器位置和尺寸
@@ -26,7 +26,6 @@ class SingleGallery {
   _removeResize: (() => void) | null = null;
   _image: Image | null = null;
   _gesture: Gesture | null = null; // 手势对象
-  _onePoint: boolean = false; // 是否被视作单点移动
   _fgBehavior: number = 0; // 当第一根手指放上去后，接着有三种行为：0: 直接拿开 1: 直接移动 2: 再放一根手指
   constructor({
     container: ele,
@@ -277,4 +276,4 @@ export type COption = {
   onResize?: () => void; // 窗口改变时的回调
 };
 
-export default SingleGallery;
+export default Picture;

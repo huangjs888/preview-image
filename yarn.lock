@@ -1004,10 +1004,10 @@
   resolved "https://registry.npmjs.org/@huangjs888/damping/-/damping-2.0.1.tgz"
   integrity sha512-kHaYfvkqv1WcsA7W91wv6SzXs73CaaKcZbFyi61EwhAztVbltOfcpHbztFBJlpRp+laHOE/l9sMvQXTtBfpTUw==
 
-"@huangjs888/gesture@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@huangjs888/gesture/-/gesture-2.0.0.tgz"
-  integrity sha512-rJlR66QAAbWHXSg8Qw3IQGOiDmLx9DB/CQIVKccO+7HyYHpKy/Vj6KayVHJE69tVHrS0H+MPPxGBer9zClC7AQ==
+"@huangjs888/gesture@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/@huangjs888/gesture/-/gesture-2.1.1.tgz"
+  integrity sha512-hP2rcdzsza/WEItNLP4zO0qlNEnbI/05nVoB0JEB1XqJPsulX1Y1CjKqcpePW27LpW2RzcjW1+Uio84IZkf9cA==
 
 "@huangjs888/load-image@^1.0.3":
   version "1.0.3"

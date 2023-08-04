@@ -2,15 +2,15 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 14:49:48
+ * @LastEditTime: 2023-08-04 16:26:11
  * @Description: ******
  */
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function pointerEnd(this: Gallery | SingleGallery, e: GEvent) {
+export default function pointerEnd(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }
@@ -18,7 +18,9 @@ export default function pointerEnd(this: Gallery | SingleGallery, e: GEvent) {
   if (this instanceof Gallery) {
     target = this._moveTarget;
   }
-  if (e.pointer.length === 0) {
+  // 单指抬起的情况才可以取消动画
+  const cancel = this._fgBehavior === 1 || e.leavePointers.length === 1;
+  if (e.pointers.length === 0) {
     // 抬起最后一根手指时，重置以下参数
     this._fgBehavior = 0;
     if (this instanceof Gallery) {
@@ -36,7 +38,7 @@ export default function pointerEnd(this: Gallery | SingleGallery, e: GEvent) {
     }
     return;
   }
-  const point = e.point[2];
+  const point = e.getPoint();
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
       return;
@@ -50,7 +52,7 @@ export default function pointerEnd(this: Gallery | SingleGallery, e: GEvent) {
       if (entity.isTransitioning()) {
         return;
       }
-      entity.resetBounce(point, this._onePoint);
+      entity.resetBounce(point, cancel);
     }
     // 只有在swiper的时候才会下一张
     const size = this.getItemSize();
@@ -66,7 +68,7 @@ export default function pointerEnd(this: Gallery | SingleGallery, e: GEvent) {
       if (entity.isTransitioning()) {
         return;
       }
-      entity.resetBounce(point, this._onePoint);
+      entity.resetBounce(point, cancel);
     }
   }
 }

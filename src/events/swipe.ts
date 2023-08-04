@@ -9,9 +9,9 @@
 import { type GEvent } from '@huangjs888/gesture';
 import { type EaseFn } from '@huangjs888/transition';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function swipe(this: Gallery | SingleGallery, e: GEvent) {
+export default function swipe(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }

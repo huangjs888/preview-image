@@ -6,7 +6,7 @@ body {
   padding: 0;
   overflow: hidden;
   overflow-y: auto;
-  background-color: #006f66ab;
+  background-color: #eee;
 }
 .container,
 .swiper {
@@ -31,7 +31,6 @@ body {
   top: 0;
   text-align: center;
   overflow: auto;
-  z-index: 2;
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   overflow-y: auto;
@@ -56,4 +55,4 @@ body {
 }
 
 
-/*# sourceMappingURL=index.db135fa1.css.map*/
+/*# sourceMappingURL=index.f744b45c.css.map*/

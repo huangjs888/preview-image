@@ -2,10 +2,10 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 15:56:54
+ * @LastEditTime: 2023-08-04 16:22:58
  * @Description: ******
  */
-import previewImage /* , { Gallery, SingleGallery } */ from '../src';
+import previewImage /* , { Gallery, Picture } */ from '../src';
 import './index.less';
 
 const sendMessage = (data: any) => {
@@ -34,42 +34,36 @@ imgDoms.forEach((a) => {
   };
 });
 
-/*const swiper = document.querySelector('.swiper') as HTMLElement;
+/* const swiper = document.querySelector('.swiper') as HTMLElement;
 const s = new Gallery({
   container: swiper,
   imageUrls: [
-    require('./image/ok1.jpg'),
     '/http/maxAgeImage?' + new Date().getTime(),
-    require('./image/ok2.png'),
+    'https://github.githubassets.com/images/modules/site/home/globe.jpg',
     'https://greensock.com/images/testimonial-bg.gif?' + new Date().getTime(),
     'https://cloud.githubusercontent.com/assets/2395166/20168869/48a75b02-a75f-11e6-89aa-503d65c8ad8e.png?' +
       new Date().getTime(),
     '/http/maxAgeImagePPP',
   ],
-  // rotation: true,
-  // translation: false,
   activeIndex: 1,
-  // direction: 'vertical',
-  // isLazy: false,
-  longTap: () => {
-    sendMessage({ type: 'longTap' });
+  direction: 'vertical',
+  isLazy: false,
+  longPress: () => {
+    sendMessage({ type: 'longPress' });
   },
-  singleTap: () => {
-    sendMessage({ type: 'singleTap' });
-  },
-  downSwipe: () => {
-    sendMessage({ type: 'downSwipe' });
+  press: () => {
+    sendMessage({ type: 'press' });
   },
 });
-// s.open();
+s.open();
 const container = document.querySelector('.container') as HTMLElement;
-const c = new SingleGallery({
+const c = new Picture({
   container,
   url: require('./image/ok.jpg'),
-  longTap: () => {
+  longPress: () => {
     sendMessage({ type: 'longTap' });
   },
-  singleTap: () => {
+  press: () => {
     sendMessage({ type: 'singleTap' });
   },
   options: {
@@ -79,7 +73,7 @@ const c = new SingleGallery({
 });
 c.open();
 (document.querySelector('#test') as HTMLElement).onclick = () => {
-  const c_image = c._image.entity;
+  const c_image = c._image && c._image.entity;
   if (c_image) {
     c_image.setTranslation([
       [-Infinity, Infinity],
@@ -127,15 +121,14 @@ c.open();
     }, 4000);
   }
 };
-(document.querySelector('#clear') as HTMLElement).onclick = () => {
-  logDom.innerHTML = '';
-};
 (document.querySelector('#switch') as HTMLElement).onclick = () => {
-  s.container.style.zIndex = `${-s.container.style.zIndex}`;
-  c.container.style.zIndex = `${-c.container.style.zIndex}`;
-  (document.querySelector('#switch') as HTMLElement).innerHTML = `swicth-${
-    +s.container.style.zIndex > 0 ? 'c' : 's'
-  }`;
+  if (s._container && c._container) {
+    s._container.style.zIndex = `${-s._container.style.zIndex}`;
+    c._container.style.zIndex = `${-c._container.style.zIndex}`;
+    (document.querySelector('#switch') as HTMLElement).innerHTML = `swicth-${
+      +s._container.style.zIndex > 0 ? 'c' : 's'
+    }`;
+  }
 };
 (document.querySelector('#prev') as HTMLElement).onclick = () => {
   s.prev();
@@ -144,11 +137,11 @@ c.open();
   s.next();
 };
 (document.querySelector('#zoom') as HTMLElement).onclick = () => {
-  const c_image = c._image.entity;
+  const c_image = c._image && c._image.entity;
   if (c_image) {
     c_image.scaleTo(4);
   }
-  const s_image = s._images[s._activeIndex].entity;
+  const s_image = s._images && s._images[s._activeIndex].entity;
   if (s_image) {
     s_image.scaleTo(4);
   }
@@ -156,6 +149,10 @@ c.open();
 (document.querySelector('#drop') as HTMLElement).onclick = () => {
   c.close();
   s.close();
+};
+
+(document.querySelector('#clear') as HTMLElement).onclick = () => {
+  logDom.innerHTML = '';
 };
 
 const logDom = document.querySelector('#log') as HTMLElement;
@@ -173,5 +170,4 @@ const logDom = document.querySelector('#log') as HTMLElement;
     innerHTML += `<span>${str}</span>&nbsp;`;
   });
   logDom.innerHTML = innerHTML;
-};
- */
+};*/

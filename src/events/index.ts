@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 14:42:44
+ * @LastEditTime: 2023-08-04 09:57:44
  * @Description: ******
  */
 
@@ -17,10 +17,10 @@ import pointerStart from './pointerStart';
 import pointerMove from './pointerMove';
 import pointerEnd from './pointerEnd';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function bindEvents(
-  this: Gallery | SingleGallery,
+export default function bindGesture(
+  this: Gallery | Picture,
   element: HTMLElement,
 ) {
   // 绑定手势

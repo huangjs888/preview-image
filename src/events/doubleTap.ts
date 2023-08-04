@@ -8,13 +8,13 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function doubleTap(this: Gallery | SingleGallery, e: GEvent) {
+export default function doubleTap(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }
-  const point = e.point[2];
+  const point = e.getPoint();
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
       return;

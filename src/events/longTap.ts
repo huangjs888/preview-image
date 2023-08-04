@@ -7,9 +7,9 @@
  */
 
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function longTap(this: Gallery | SingleGallery) {
+export default function longTap(this: Gallery | Picture) {
   if (this._isClose) {
     return;
   }

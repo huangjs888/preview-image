@@ -2,23 +2,23 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-02 10:54:32
+ * @LastEditTime: 2023-08-04 09:09:37
  * @Description: ******
  */
 import Gallery, { type SOption } from './gallery';
-import SingleGallery from './singleGallery';
+import Picture from './picture';
 import Entity from './entity';
 import loadImage from './image';
 
 export * from './gallery';
 
-export * from './singleGallery';
+export * from './picture';
 
 export * from './entity';
 
 export * from './image';
 
-export { Gallery, SingleGallery, Entity, loadImage };
+export { Gallery, Picture, Entity, loadImage };
 
 export default function previewImage({
   urls,

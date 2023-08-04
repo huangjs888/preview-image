@@ -8,9 +8,9 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function rotate(this: Gallery | SingleGallery, e: GEvent) {
+export default function rotate(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }

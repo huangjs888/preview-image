@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 17:31:56
+ * @LastEditTime: 2023-08-04 16:43:08
  * @Description: ******
 -->
 <!DOCTYPE html>
@@ -23,7 +23,7 @@
         padding: 0;
         overflow: hidden;
         overflow-y: auto;
-        background-color: #006f66ab;
+        background-color: #eee;
       }
       .imglist {
         display: flex;
@@ -68,12 +68,14 @@
           const current = a.src;
           imgUrls.push(current);
           a.onclick = () => {
+            const { left, top, width, height } = a.getBoundingClientRect();
             window.PreviewImage.default({
               urls: imgUrls,
               current,
               showMenu: () => {
                 sendMessage('showMenu');
               },
+              originRect: { left, top, width, height },
             });
           };
         });

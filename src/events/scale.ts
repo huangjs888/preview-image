@@ -8,9 +8,9 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function scale(this: Gallery | SingleGallery, e: GEvent) {
+export default function scale(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }
@@ -18,7 +18,7 @@ export default function scale(this: Gallery | SingleGallery, e: GEvent) {
   if (this._gesture && this._gesture.isTouch()) {
     return;
   }
-  // const point = e.point[2];
+  // const point = e.getPoint();
   const { scale: k = 1 } = e;
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {

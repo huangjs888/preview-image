@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 17:36:40
+ * @LastEditTime: 2023-08-04 15:25:08
  * @Description: ******
  */
 
@@ -10,7 +10,7 @@ import { type GEvent } from '@huangjs888/gesture';
 import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { between } from '../entity/utils';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
 const minScale = 0.3; // swipeClose下拉最小缩放比例
 const minOpacity = 0.01; // swipeClose下拉最小透明度
@@ -26,16 +26,20 @@ const isRightDown = (
   }
 };
 
-export default function pointerMove(this: Gallery | SingleGallery, e: GEvent) {
+export default function pointerMove(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }
-  if (this._fgBehavior === 0 && e.pointer.length === 1) {
+  if (this._fgBehavior === 0 && e.pointers.length === 1) {
     // 第一根手指放上去，然后直接移动，此时标记为1
     this._fgBehavior = 1;
   }
-  this._onePoint = e.pointer.length === 1 || this._fgBehavior === 1;
-  const [_, point0, point] = e.point;
+  let onePointer = false;
+  if (e.pointers.length === 1 || this._fgBehavior === 1) {
+    onePointer = true;
+  }
+  const point = e.getPoint();
+  const point0 = e.getPoint('previous');
   const { direction, angle = 0, scale = 1, deltaX = 0, deltaY = 0 } = e;
   if (this instanceof Gallery) {
     if (this.isTransitioning()) {
@@ -57,7 +61,7 @@ export default function pointerMove(this: Gallery | SingleGallery, e: GEvent) {
       if (this._moveTarget === 'none') {
         // 多指或者不满足以下条件的，则做图片操作
         this._moveTarget = 'inside';
-        if (this._onePoint) {
+        if (onePointer) {
           // 是否是边缘图片
           const isFirst = this._activeIndex === 0;
           const isLast = this._activeIndex === length - 1;
@@ -116,7 +120,7 @@ export default function pointerMove(this: Gallery | SingleGallery, e: GEvent) {
         } else {
           _deltaX += diff;
         }
-        if (this._onePoint) {
+        if (onePointer) {
           let _delta = 0;
           if (this._direction === 'vertical') {
             _delta = _deltaY;
@@ -213,7 +217,7 @@ export default function pointerMove(this: Gallery | SingleGallery, e: GEvent) {
       if (entity.isTransitioning()) {
         return;
       }
-      if (this._onePoint) {
+      if (onePointer) {
         // 实现单指move
         entity.moveBounce(0, 1, deltaX, deltaY, point);
       } else {

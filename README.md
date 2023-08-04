@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 17:22:35
+ * @LastEditTime: 2023-08-04 16:37:47
  * @Description: ******
 -->
 ## previewImage
@@ -22,6 +22,7 @@ import previewImage from '@huangjs888/previewImage';
 const imgDoms = document.querySelectorAll('.img');
 const imgUrls = [];
 imgDoms.forEach((a) => {
+  const { left, top, width, height } = a.getBoundingClientRect();
   const current = a.src;
   imgUrls.push(current);
   a.onclick = () => {
@@ -31,6 +32,7 @@ imgDoms.forEach((a) => {
       showMenu: () => {
         alert('showMenu');
       },
+      originRect: { left, top, width, height },
     });
   };
 });

@@ -2,20 +2,20 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 13:51:40
+ * @LastEditTime: 2023-08-04 15:22:28
  * @Description: ******
  */
 
 import { type GEvent } from '@huangjs888/gesture';
 import { between, isBetween } from '../entity/utils';
 import Gallery from '../gallery';
-import SingleGallery from '../singleGallery';
+import Picture from '../picture';
 
-export default function pointerStart(this: Gallery | SingleGallery, e: GEvent) {
+export default function pointerStart(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
     return;
   }
-  if (this._fgBehavior === 0 && e.pointer.length > 1) {
+  if (this._fgBehavior === 0 && e.pointers.length > 1) {
     // 第一根手指放上去，紧接着再放一根手指（或者直接一下子放了两个手指），此时标记为2
     this._fgBehavior = 2;
   }
@@ -73,7 +73,7 @@ export default function pointerStart(this: Gallery | SingleGallery, e: GEvent) {
     this._gesture._preventTap = true;
     this._gesture._preventSingleTap = true;
     this._gesture._preventDoubleTap = true;
-    this._gesture._firstPoint = null;
+    this._gesture._firstPointer = null;
     if (this._gesture._longTapTimer) {
       clearTimeout(this._gesture._longTapTimer);
       this._gesture._longTapTimer = null;

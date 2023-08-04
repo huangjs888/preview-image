@@ -44,7 +44,6 @@ class Gallery {
   _translate: number = 0; // swiper位移值
   _transition: Transition | null = null; // 过渡对象
   _gesture: Gesture | null = null; // 手势对象
-  _onePoint: boolean = false; // 是否被视作单点移动
   _fgBehavior: number = 0; // 当第一根手指放上去后，接着有三种行为：0: 直接拿开 1: 直接移动 2: 再放一根手指
   _moveTarget: 'closures' | 'outside' | 'inside' | 'none' = 'none'; // 判断是内部的图片移动，还是外部swiper移动，还是直接关闭
   constructor({
