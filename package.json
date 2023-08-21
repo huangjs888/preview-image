@@ -1,33 +1,41 @@
 {
   "name": "@huangjs888/preview-image",
   "version": "1.2.0",
-  "description": "Preview Image",
+  "description": "Preview images",
   "main": "lib/index.js",
-  "unpkg": "dist/image-view.min.js",
+  "types": "es/index.d.ts",
+  "module": "es/index.js",
+  "unpkg": "dist/previewImage.js",
+  "exports": {
+    "umd": "./dist/previewImage.min.js",
+    "types": "./es/index.d.ts",
+    "import": "./es/index.js",
+    "default": "./lib/index.js"
+  },
+  "scripts": {
+    "start": "npm run build && npm run example:prod && npm run example:dev",
+    "build": "npm run clean && npm run lint && npm run build:types && npm run build:esm && npm run build:cjs && npm run build:umd",
+    "build:merge": "npm run clean && npm run lint && npm run build:types:merge && npm run build:esm:merge && npm run build:cjs:merge && npm run build:umd",
+    "build:cjs": "cross-env MOD_ENV=cjs babel --extensions .ts src -d lib",
+    "build:esm": "cross-env MOD_ENV=esm babel --extensions .ts src -d es",
+    "build:types": "tsc --declaration",
+    "build:cjs:merge": "cross-env NODE_ENV=development MOD_ENV=cjs webpack --config webpack.config.js",
+    "build:esm:merge": "cross-env NODE_ENV=development MOD_ENV=esm webpack --config webpack.config.js",
+    "build:types:merge": "tsc --outFile es/previewImage.d.ts --declaration",
+    "build:umd": "npm run build:umd:dev && npm run build:umd:prod",
+    "build:umd:dev": "cross-env NODE_ENV=development MOD_ENV=umd webpack --config webpack.config.js",
+    "build:umd:prod": "cross-env NODE_ENV=production MOD_ENV=umd webpack --config webpack.config.js",
+    "example:prod": "rimraf docs && webpack --mode production --config ./example/webpack.config.js",
+    "example:dev": "webpack server  --mode development --config ./example/webpack.config.js",
+    "clean": "rimraf lib && rimraf dist && rimraf es",
+    "lint": "eslint . --ext .js,.ts"
+  },
   "files": [
+    "es",
     "dist",
     "lib",
     "README.md"
   ],
-  "exports": {
-    "umd": "./dist/previewImage.min.js",
-    "default": "./lib/index.js"
-  },
-  "scripts": {
-    "start": "npm run lint && npm run lib && npm run dist && npm run example:build && npm run example:start",
-    "clean:lib": "rimraf lib",
-    "clean:dist": "rimraf dist",
-    "lint": "eslint . --ext .js,.ts",
-    "lib": "npm run clean:lib && babel --extensions .ts ./src -d ./lib",
-    "dist": "npm run clean:dist && webpack --config webpack.config.js --mode production",
-    "example:build": "rimraf docs && webpack --mode production --config ./example/webpack.config.js",
-    "example:develop": "webpack-dev-server  --mode development --config ./example/webpack.config.js",
-    "example:start": "webpack serve  --mode development --config ./example/webpack.config.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/huangjs888/previewImage.git"
-  },
   "keywords": [
     "huangjs",
     "huangjs888",
@@ -38,46 +46,53 @@
     "previewImage",
     "preview-image"
   ],
-  "author": "Huangjs",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huangjs888/previewImage.git"
+  },
   "bugs": {
     "url": "https://github.com/huangjs888/previewImage/issues"
   },
   "homepage": "https://github.com/huangjs888/previewImage#readme",
-  "dependencies": {
-    "@huangjs888/damping": "^2.0.1",
-    "@huangjs888/gesture": "^2.1.1",
-    "@huangjs888/load-image": "^1.0.3",
-    "@huangjs888/transform": "^1.0.3",
-    "@huangjs888/transition": "^1.0.3"
+  "author": {
+    "name": "Huangjs",
+    "email": "1170384651@qq.com"
   },
+  "license": "MIT",
+  "peerDependencies": {},
+  "peerDependenciesMeta": {},
   "devDependencies": {
-    "@babel/cli": "^7.20.7",
-    "@babel/core": "^7.20.12",
-    "@babel/eslint-parser": "^7.19.1",
-    "@babel/plugin-transform-runtime": "^7.19.6",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/preset-typescript": "^7.18.6",
-    "@babel/runtime-corejs3": "^7.20.13",
-    "@typescript-eslint/eslint-plugin": "^5.52.0",
-    "@typescript-eslint/parser": "^5.52.0",
-    "babel-loader": "^8.3.0",
-    "css-loader": "^6.7.3",
-    "eslint": "^8.34.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^5.5.0",
-    "less": "^4.1.3",
-    "less-loader": "^10.2.0",
-    "mini-css-extract-plugin": "^2.7.2",
-    "prettier": "^2.8.4",
-    "style-loader": "^3.3.1",
-    "ts-loader": "^9.4.2",
-    "typescript": "^4.9.5",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.11.1"
+    "@babel/cli": "^7.22.10",
+    "@babel/core": "^7.22.10",
+    "@babel/plugin-transform-runtime": "^7.22.10",
+    "@babel/preset-env": "^7.22.10",
+    "@babel/preset-typescript": "^7.22.5",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "babel-loader": "^9.1.3",
+    "cross-env": "^7.0.3",
+    "css-loader": "^6.8.1",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "html-webpack-plugin": "^5.5.3",
+    "less": "^4.2.0",
+    "less-loader": "^11.1.3",
+    "mini-css-extract-plugin": "^2.7.6",
+    "prettier": "^3.0.1",
+    "rimraf": "^5.0.1",
+    "style-loader": "^3.3.3",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "dependencies": {
+    "@babel/runtime-corejs3": "^7.22.10",
+    "@huangjs888/damping": "^2.1.0",
+    "@huangjs888/gesture": "^2.2.0",
+    "@huangjs888/load-image": "^1.1.0",
+    "@huangjs888/transform": "^1.1.0",
+    "@huangjs888/transition": "^1.1.0"
   }
 }

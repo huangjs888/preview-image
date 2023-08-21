@@ -2,15 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 17:39:51
+ * @LastEditTime: 2023-08-18 15:02:11
  * @Description: ******
  */
-import Gesture from '@huangjs888/gesture';
-import Transition, {
-  TAProperty,
-  easeOutQuart,
-  type EaseFn,
-} from '@huangjs888/transition';
+import type Gesture from '@huangjs888/gesture';
+import Transition, { TAProperty, easeOutQuart, type EaseFn } from '@huangjs888/transition';
 import loadImage, { type Image, type ImageOption } from './image';
 import bindGesture from './events';
 import {
@@ -22,6 +18,7 @@ import {
   createItemWrapper,
   setStyle,
 } from './dom';
+import { popupComputedSize, popupTransform, type RectSize } from './popup';
 
 class Gallery {
   _container: HTMLElement | null = null;
@@ -38,9 +35,10 @@ class Gallery {
   _press: (() => void) | null = null;
   _longPress: (() => void) | null = null;
   _onChange: (() => void) | null = null;
+  _onImageEnd: ((i: number, o: boolean) => void) | null = null;
   _removeResize: (() => void) | null = null;
   _images: Image[] | null = null;
-  _activeIndex: number = -1;
+  _activeIndex: number = 0;
   _translate: number = 0; // swiper位移值
   _transition: Transition | null = null; // 过渡对象
   _gesture: Gesture | null = null; // 手势对象
@@ -63,14 +61,12 @@ class Gallery {
     longPress,
     onChange,
     onResize,
+    onImageEnd,
     options = {},
   }: SOption) {
     const container = (this._container = createContainer(ele));
     this._backdrop = createBackdrop(backdropColor, container);
-    const substance = (this._substance = createSubstance(
-      direction === 'vertical',
-      container,
-    ));
+    const substance = (this._substance = createSubstance(direction === 'vertical', container));
     const indicator = (this._indicator = createIndicator(
       direction === 'vertical',
       hasIndicator && imageUrls.length > 1,
@@ -91,16 +87,21 @@ class Gallery {
         width: 0,
         height: 0,
         options: {
-          rotation: !gesture.isTouch()
-            ? [-Number.MAX_VALUE, Number.MAX_VALUE]
-            : undefined,
+          rotation: !gesture.isTouch() ? [-Number.MAX_VALUE, Number.MAX_VALUE] : undefined,
           scalation: !gesture.isTouch() ? [0.1, 10] : undefined,
           ...options,
         },
       };
       if (!isLazy) {
         // 图片如果加载过慢，show的时候图片因为没有对象，不会计算尺寸，所以这里在加载成功的时候计算一下
-        loadImage(image).then((okay) => okay && this.resetItemSize(index));
+        loadImage(image).then((okay) => {
+          if (okay) {
+            this.resetItemSize(index);
+          }
+          if (typeof okay === 'boolean' && typeof this._onImageEnd === 'function') {
+            this._onImageEnd(index, okay);
+          }
+        });
       }
       return image;
     });
@@ -110,9 +111,7 @@ class Gallery {
       propertyName: 'transform',
       propertyValue: new (class extends TAProperty {
         toString() {
-          return `translate${direction === 'vertical' ? 'Y' : 'X'}(${
-            this.value.translate
-          }px)`;
+          return `translate${direction === 'vertical' ? 'Y' : 'X'}(${this.value.translate}px)`;
         }
       })({ translate: this._translate }),
     });
@@ -124,7 +123,8 @@ class Gallery {
     this._press = press || null;
     this._longPress = longPress || null;
     this._onChange = onChange || null;
-    this.slide(activeIndex, { duration: 0 });
+    this._onImageEnd = onImageEnd || null;
+    this._activeIndex = activeIndex;
     // 浏览器窗口变化重新计算容器尺寸和所有图片尺寸
     const resize = () => {
       this.resetSize();
@@ -147,20 +147,15 @@ class Gallery {
       return;
     }
     // 容器宽高设置
-    const { left, top, width, height } =
-      this._container.getBoundingClientRect();
+    const { left, top, width, height } = this._container.getBoundingClientRect();
     this._rectSize = { left, top, width, height };
     const length = this._images.length;
     if (length > 0) {
       setStyle(this._substance, {
         width:
-          this._direction === 'vertical'
-            ? width
-            : width * length + (length - 1) * this._itemGap,
+          this._direction === 'vertical' ? width : width * length + (length - 1) * this._itemGap,
         height:
-          this._direction === 'vertical'
-            ? height * length + (length - 1) * this._itemGap
-            : height,
+          this._direction === 'vertical' ? height * length + (length - 1) * this._itemGap : height,
       });
     }
   }
@@ -206,12 +201,13 @@ class Gallery {
       duration?: number;
       easing?: EaseFn;
     },
+    open: boolean = false,
   ) {
     if (!this._images || this._images.length === 0) {
       return Promise.resolve();
     }
     const _index = Math.max(Math.min(index, this._images.length - 1), 0);
-    const isChange = this._activeIndex !== _index;
+    const isChange = open || this._activeIndex !== _index;
     if (isChange) {
       const { indicator: lastOne } = this._images[this._activeIndex] || {};
       if (lastOne) {
@@ -232,7 +228,14 @@ class Gallery {
       this._activeIndex = _index;
       loadImage(this._images[_index]).then(
         // lazy的时候，滑到这里才加载图片，所以加载成功后需要计算该图片尺寸
-        (okay) => okay && this.resetItemSize(_index),
+        (okay) => {
+          if (okay) {
+            this.resetItemSize(_index);
+          }
+          if (typeof okay === 'boolean' && typeof this._onImageEnd === 'function') {
+            this._onImageEnd(_index, okay);
+          }
+        },
       );
     }
     const _translate = -_index * this.getItemSize();
@@ -354,69 +357,68 @@ class Gallery {
       return;
     }
     this._isClose = false;
-    setStyle(this._container, {
+    const { _backdrop: backdrop, _container: container } = this;
+    setStyle(container, {
       display: 'block',
     });
     // 设置容器宽高尺寸
     this.resetSize();
-    // 要计算每一张图片尺寸
-    // 初始化显示的图片如果加载很快，还没open就加载完成触发了resetItemSize
-    // 由于此时container没有尺寸，图片也不会计算尺寸，那就需要在这里再次计算一下
+    // 非懒加载模式下，初始化显示的图片如果加载很快，还没open就加载完成触发了resetItemSize
+    // 由于此时container没有尺寸，图片也不会计算尺寸，那就需要在打开时再次计算一下
+    // 初始化图加载很慢的情况，或懒加载模式下，虽然此时container有尺寸，但由于图片还未加载，所以计算无效
     this.resetItemSize();
-    // 计算完尺寸，自然要将当前activeIndex的图片展示出来，要计算一下swiper的位移
-    if (this._transition) {
-      this._translate = -this._activeIndex * this.getItemSize();
-      this._transition.bind({ translate: this._translate });
+    this.slide(this._activeIndex, { duration: 0 }, true);
+    const { wrapper = null, entity } = (this._images && this._images[this._activeIndex]) || {};
+    let elementSize: RectSize | null = null;
+    let elementEl: HTMLElement | null = null;
+    if (entity) {
+      const size = entity.getSizeInfo();
+      elementEl = entity.getElement();
+      elementSize = {
+        width: size.elementWidth,
+        height: size.elementHeight,
+        top: 0,
+        left: 0,
+      };
     }
-    let x = 0;
-    let y = 0;
-    let k = 0.01;
-    if (this._originRect && this._rectSize) {
-      const { left, top, width, height } = this._originRect;
-      const {
-        left: _left = 0,
-        top: _top = 0,
-        width: _width = 0,
-        height: _height = 0,
-      } = this._rectSize || {};
-      x = left + width / 2 - (_left + _width / 2);
-      y = top + height / 2 - (_top + _height / 2);
-      k = width / _width || 0.01;
-    }
-    this.originTransform(x, y, k, 0, 0);
-    setTimeout(() => {
-      this.originTransform(0, 0, 1, 1, 300).then(() => {
-        if (this._indicator) {
-          setStyle(this._indicator, {
-            display: 'flex',
-          });
-        }
-      });
-    }, 1);
+    const { x, y, k, w, h } = popupComputedSize(this._originRect, this._rectSize, elementSize);
+    popupTransform({ el: backdrop, o: 0 }, { el: wrapper, x, y, k }, { el: elementEl, w, h });
+    // 目的是让上一个popupTransform变化立马生效，下一个popupTransform可以顺利进行，而不是合并进行了
+    container.getBoundingClientRect();
+    popupTransform(
+      { el: backdrop, o: 1 },
+      { el: wrapper, x: 0, y: 0, k: 1 },
+      {
+        el: elementEl,
+        ...(elementSize ? { w: elementSize.width, h: elementSize.height } : {}),
+      },
+      300,
+    ).then(() => {
+      if (this._indicator) {
+        setStyle(this._indicator, {
+          display: 'flex',
+        });
+      }
+    });
   }
   close() {
     if (!this._container || this._isClose) {
       return;
     }
     this._isClose = true;
-    let x = 0;
-    let y = 0;
-    let k = 0.01;
-    if (this._originRect && this._rectSize) {
-      const { left, top, width, height } = this._originRect;
-      const {
-        left: _left = 0,
-        top: _top = 0,
-        width: _width = 0,
-        height: _height = 0,
-      } = this._rectSize || {};
-      x = left + width / 2 - (_left + _width / 2);
-      y = top + height / 2 - (_top + _height / 2);
-      k = width / _width || 0.01;
-    }
-    // 需要把放大的图片归位到原始大小
-    const { entity } = (this._images && this._images[this._activeIndex]) || {};
+    const { wrapper = null, entity } = (this._images && this._images[this._activeIndex]) || {};
+    let elementSize: RectSize | null = null;
+    let elementEl: HTMLElement | null = null;
     if (entity) {
+      const size = entity.getSizeInfo();
+      elementEl = entity.getElement();
+      elementSize = {
+        width: size.elementWidth,
+        height: size.elementHeight,
+        top: 0,
+        left: 0,
+      };
+      // 需要把放大的图片归位到原始大小
       entity.reset();
     }
     if (this._indicator) {
@@ -424,7 +426,13 @@ class Gallery {
         display: 'none',
       });
     }
-    this.originTransform(x, y, k, 0, 300).then(() => {
+    const { x, y, k, w, h } = popupComputedSize(this._originRect, this._rectSize, elementSize);
+    popupTransform(
+      { el: this._backdrop, o: 0 },
+      { el: wrapper, x, y, k },
+      { el: elementEl, w, h },
+      300,
+    ).then(() => {
       if (this._closeDestory) {
         this.destory();
       } else if (this._container) {
@@ -434,59 +442,7 @@ class Gallery {
       }
     });
   }
-  originTransform(
-    x: number,
-    y: number,
-    k: number,
-    o: number,
-    duration: number = 0,
-  ) {
-    const backdrop = this._backdrop;
-    if (backdrop) {
-      const { wrapper } =
-        (this._images && this._images[this._activeIndex]) || {};
-      if (wrapper) {
-        setStyle(wrapper, {
-          overflow: 'visible',
-          transform: `translate(${x}px,${y}px) scale(${k})`,
-          transition: duration > 0 ? `transform ${duration}ms` : '',
-        });
-      }
-      setStyle(backdrop, {
-        opacity: o,
-        transition: duration > 0 ? `opacity ${duration}ms` : '',
-      });
-      if (duration > 0) {
-        return new Promise<void>((resolve) => {
-          backdrop.ontransitionend = (e) => {
-            // 只有触发事件的目标元素与绑定的目标元素一致，同时触发事件的属性与需要的属性相同，才会执行事件并解绑
-            if (e.target === backdrop && e.propertyName === 'opacity') {
-              backdrop.ontransitionend = null;
-              if (wrapper) {
-                setStyle(wrapper, {
-                  overflow: 'hidden',
-                  transition: 'none',
-                });
-              }
-              setStyle(backdrop, {
-                transition: 'none',
-              });
-              resolve();
-            }
-          };
-        });
-      }
-    }
-    return Promise.resolve();
-  }
 }
-
-export type RectSize = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
 
 export type Direction = 'vertical' | 'horizontal';
 
@@ -508,6 +464,7 @@ export type SOption = {
   longPress?: () => void; // longTap回调
   onChange?: () => void; // 滑动到另一张图片之后的回调
   onResize?: () => void; // 窗口改变时的回调
+  onImageEnd?: (i: number, o: boolean) => void; // 每次图片加载成功或失败的时候调用
 };
 
 export default Gallery;

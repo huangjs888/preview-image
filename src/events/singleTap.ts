@@ -7,7 +7,7 @@
  */
 
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function singleTap(this: Gallery | Picture) {
   if (this._isClose) {

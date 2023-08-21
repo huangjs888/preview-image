@@ -8,7 +8,7 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function rotate(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
@@ -27,8 +27,7 @@ export default function rotate(this: Gallery | Picture, e: GEvent) {
     const translate = -this._activeIndex * this.getItemSize();
     const diff = Math.round(this._translate - translate);
     if (diff === 0) {
-      const { entity } =
-        (this._images && this._images[this._activeIndex]) || {};
+      const { entity } = (this._images && this._images[this._activeIndex]) || {};
       if (entity) {
         if (entity.isTransitioning()) {
           return;

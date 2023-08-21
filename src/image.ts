@@ -31,6 +31,7 @@ export default function (image: Image) {
         // 这里可以加一个错误的提示
         wrapper.innerHTML = '';
         createError(wrapper);
+        return false;
       });
   }
   return Promise.resolve();

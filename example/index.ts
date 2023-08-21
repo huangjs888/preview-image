@@ -2,22 +2,20 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 16:22:58
+ * @LastEditTime: 2023-08-21 14:36:29
  * @Description: ******
  */
-import previewImage /* , { Gallery, Picture } */ from '../src';
+import previewImage /* , { Gallery, Picture } */ from '../es';
 import './index.less';
 
 const sendMessage = (data: any) => {
-  ((window as any).ReactNativeWebView || window).postMessage(
-    JSON.stringify(data),
-  );
+  ((window as any).ReactNativeWebView || window).postMessage(JSON.stringify(data));
   // eslint-disable-next-line no-alert
   window.alert(data);
 };
 
 const imgDoms = document.querySelectorAll('.img');
-const imgUrls: string[] = [];
+const imgUrls: string[] = [require('./image/1.jpg')];
 imgDoms.forEach((a) => {
   const current = (a as HTMLImageElement).src;
   imgUrls.push(current);
@@ -65,6 +63,7 @@ const c = new Picture({
   },
   press: () => {
     sendMessage({ type: 'singleTap' });
+    c.close();
   },
   options: {
     rotation: [-180, 180],
@@ -72,6 +71,7 @@ const c = new Picture({
   },
 });
 c.open();
+
 (document.querySelector('#test') as HTMLElement).onclick = () => {
   const c_image = c._image && c._image.entity;
   if (c_image) {
@@ -170,4 +170,5 @@ const logDom = document.querySelector('#log') as HTMLElement;
     innerHTML += `<span>${str}</span>&nbsp;`;
   });
   logDom.innerHTML = innerHTML;
-};*/
+};
+ */

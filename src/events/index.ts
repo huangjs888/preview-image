@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 09:57:44
+ * @LastEditTime: 2023-08-17 10:36:25
  * @Description: ******
  */
 
@@ -16,13 +16,10 @@ import doubleTap from './doubleTap';
 import pointerStart from './pointerStart';
 import pointerMove from './pointerMove';
 import pointerEnd from './pointerEnd';
-import Gallery from '../gallery';
-import Picture from '../picture';
+import type Gallery from '../gallery';
+import type Picture from '../picture';
 
-export default function bindGesture(
-  this: Gallery | Picture,
-  element: HTMLElement,
-) {
+export default function bindGesture(this: Gallery | Picture, element: HTMLElement) {
   // 绑定手势
   const gesture = new Gesture(element);
   gesture.on('pointerStart', pointerStart.bind(this));

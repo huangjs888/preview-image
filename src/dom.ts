@@ -10,10 +10,7 @@ import { loadingIcon, errorIcon } from './svgIcon';
 
 const autoPxReg =
   /^(?:-border(?:-top|-right|-bottom|-left)?(?:-width|)|(?:-margin|-padding)?(?:-top|-right|-bottom|-left)?|(?:-min|-max)?(?:-width|-height))$/;
-export function setStyle(
-  ele: HTMLElement,
-  css: { [key: string]: string | number | undefined },
-) {
+export function setStyle(ele: HTMLElement, css: { [key: string]: string | number | undefined }) {
   if (ele) {
     let cssText = '';
     Object.keys(css).forEach((k: string) => {
@@ -23,11 +20,7 @@ export function setStyle(
         ele.style.setProperty(key, '');
       } else {
         const suffix =
-          typeof css[k] === 'number' &&
-          /^[a-z]/.test(key) &&
-          autoPxReg.test(`-${key}`)
-            ? 'px'
-            : '';
+          typeof css[k] === 'number' && /^[a-z]/.test(key) && autoPxReg.test(`-${key}`) ? 'px' : '';
         const val = `${css[k]}${suffix}`;
         cssText += `${key}:${val};`;
       }
@@ -93,11 +86,7 @@ export function createBackdrop(background: string, element: HTMLElement) {
   return backdrop;
 }
 
-export function createIndicator(
-  isVertical: boolean,
-  hasIndicator: boolean,
-  element: HTMLElement,
-) {
+export function createIndicator(isVertical: boolean, hasIndicator: boolean, element: HTMLElement) {
   let indicator = null;
   if (hasIndicator) {
     indicator = setStyle(document.createElement('div'), {
@@ -116,10 +105,7 @@ export function createIndicator(
   return indicator;
 }
 
-export function createItemIndicator(
-  isVertical: boolean,
-  element: HTMLElement | null,
-) {
+export function createItemIndicator(isVertical: boolean, element: HTMLElement | null) {
   let item = null;
   if (element) {
     item = setStyle(document.createElement('span'), {

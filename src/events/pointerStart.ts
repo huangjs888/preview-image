@@ -2,14 +2,14 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 15:22:28
+ * @LastEditTime: 2023-08-17 10:36:57
  * @Description: ******
  */
 
 import { type GEvent } from '@huangjs888/gesture';
 import { between, isBetween } from '../entity/utils';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function pointerStart(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
@@ -42,10 +42,7 @@ export default function pointerStart(this: Gallery | Picture, e: GEvent) {
           ((ty <= yRange[0] && !isLast) || (ty >= yRange[1] && !isFirst))
         ) {
           // 非边缘图片，且y方向超出边界，x方向也超出边界的，x给予恢复到边界
-          entity.transitionRun(
-            { x: between(tx, xRange), y: ty, ...rest },
-            { duration: 0 },
-          );
+          entity.transitionRun({ x: between(tx, xRange), y: ty, ...rest }, { duration: 0 });
         }
       } else {
         if (
@@ -53,10 +50,7 @@ export default function pointerStart(this: Gallery | Picture, e: GEvent) {
           ((tx <= xRange[0] && !isLast) || (tx >= xRange[1] && !isFirst))
         ) {
           // 非边缘图片，且x方向超出边界，y方向也超出边界的，y给予恢复到边界
-          entity.transitionRun(
-            { x: tx, y: between(ty, yRange), ...rest },
-            { duration: 0 },
-          );
+          entity.transitionRun({ x: tx, y: between(ty, yRange), ...rest }, { duration: 0 });
         }
       }
     }

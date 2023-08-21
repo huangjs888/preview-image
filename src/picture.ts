@@ -1,12 +1,8 @@
-import Gesture from '@huangjs888/gesture';
+import type Gesture from '@huangjs888/gesture';
 import loadImage, { type Image, type ImageOption } from './image';
 import bindGesture from './events';
-import {
-  createContainer,
-  createBackdrop,
-  createItemWrapper,
-  setStyle,
-} from './dom';
+import { createContainer, createBackdrop, createItemWrapper, setStyle } from './dom';
+import { popupComputedSize, popupTransform, type RectSize } from './popup';
 
 // this._events还要重新整理一下
 // 测试重复调用open，close等以及destory后，在调用方法，报啥错误？
@@ -23,6 +19,7 @@ class Picture {
   _press: (() => void) | null = null;
   _longPress: (() => void) | null = null;
   _onChange: (() => void) | null = null;
+  _onImageEnd: ((o: boolean) => void) | null = null;
   _removeResize: (() => void) | null = null;
   _image: Image | null = null;
   _gesture: Gesture | null = null; // 手势对象
@@ -49,14 +46,19 @@ class Picture {
       width: 0,
       height: 0,
       options: {
-        rotation: !gesture.isTouch()
-          ? [-Number.MAX_VALUE, Number.MAX_VALUE]
-          : undefined,
+        rotation: !gesture.isTouch() ? [-Number.MAX_VALUE, Number.MAX_VALUE] : undefined,
         scalation: !gesture.isTouch() ? [0.1, 10] : undefined,
         ...options,
       },
     };
-    loadImage(this._image).then((okay) => okay && this.resetItemSize());
+    loadImage(this._image).then((okay) => {
+      if (okay) {
+        this.resetItemSize();
+      }
+      if (typeof okay === 'boolean' && typeof this._onImageEnd === 'function') {
+        this._onImageEnd(okay);
+      }
+    });
     this._swipeClose = swipeClose;
     this._closeDestory = closeDestory;
     this._originRect = originRect || null;
@@ -148,58 +150,68 @@ class Picture {
       return;
     }
     this._isClose = false;
-    setStyle(this._container, {
+    const { _backdrop: backdrop, _container: container } = this;
+    setStyle(container, {
       display: 'block',
     });
-    // 初始化显示的图片如果加载很快，还没open就加载完成触发了resetItemSize
-    // 由于此时container没有尺寸，图片也不会计算尺寸，那就需要在这里再次计算一下
+    // 非懒加载模式下，初始化显示的图片如果加载很快，还没open就加载完成触发了resetItemSize
+    // 由于此时container没有尺寸，图片也不会计算尺寸，那就需要在打开时再次计算一下
+    // 初始化图加载很慢的情况，或懒加载模式下，虽然此时container有尺寸，但由于图片还未加载，所以计算无效
     this.resetItemSize();
-    let x = 0;
-    let y = 0;
-    let k = 0.01;
-    if (this._originRect && this._rectSize) {
-      const { left, top, width, height } = this._originRect;
-      const {
-        left: _left = 0,
-        top: _top = 0,
-        width: _width = 0,
-        height: _height = 0,
-      } = this._rectSize || {};
-      x = left + width / 2 - (_left + _width / 2);
-      y = top + height / 2 - (_top + _height / 2);
-      k = width / _width || 0.01;
+    const { wrapper = null, entity } = this._image || {};
+    let elementSize: RectSize | null = null;
+    let elementEl: HTMLElement | null = null;
+    if (entity) {
+      const size = entity.getSizeInfo();
+      elementEl = entity.getElement();
+      elementSize = {
+        width: size.elementWidth,
+        height: size.elementHeight,
+        top: 0,
+        left: 0,
+      };
     }
-    this.originTransform(x, y, k, 0, 0);
-    setTimeout(() => {
-      this.originTransform(0, 0, 1, 1, 300);
-    }, 1);
+    const { x, y, k, w, h } = popupComputedSize(this._originRect, this._rectSize, elementSize);
+    popupTransform({ el: backdrop, o: 0 }, { el: wrapper, x, y, k }, { el: elementEl, w, h });
+    // 目的是让上一个popupTransform变化立马生效，下一个popupTransform可以顺利进行，而不是合并进行了
+    container.getBoundingClientRect();
+    popupTransform(
+      { el: backdrop, o: 1 },
+      { el: wrapper, x: 0, y: 0, k: 1 },
+      {
+        el: elementEl,
+        ...(elementSize ? { w: elementSize.width, h: elementSize.height } : {}),
+      },
+      300,
+    ).then(() => {});
   }
   close() {
     if (!this._container || this._isClose) {
       return;
     }
     this._isClose = true;
-    let x = 0;
-    let y = 0;
-    let k = 0.01;
-    if (this._originRect && this._rectSize) {
-      const { left, top, width, height } = this._originRect;
-      const {
-        left: _left = 0,
-        top: _top = 0,
-        width: _width = 0,
-        height: _height = 0,
-      } = this._rectSize || {};
-      x = left + width / 2 - (_left + _width / 2);
-      y = top + height / 2 - (_top + _height / 2);
-      k = width / _width || 0.01;
-    }
-    // 需要把放大的图片归位到原始大小
-    const { entity } = this._image || {};
+    const { wrapper = null, entity } = this._image || {};
+    let elementSize: RectSize | null = null;
+    let elementEl: HTMLElement | null = null;
     if (entity) {
+      const size = entity.getSizeInfo();
+      elementEl = entity.getElement();
+      elementSize = {
+        width: size.elementWidth,
+        height: size.elementHeight,
+        top: 0,
+        left: 0,
+      };
+      // 需要把放大的图片归位到原始大小
       entity.reset();
     }
-    this.originTransform(x, y, k, 0, 300).then(() => {
+    const { x, y, k, w, h } = popupComputedSize(this._originRect, this._rectSize, elementSize);
+    popupTransform(
+      { el: this._backdrop, o: 0 },
+      { el: wrapper, x, y, k },
+      { el: elementEl, w, h },
+      300,
+    ).then(() => {
       if (this._closeDestory) {
         this.destory();
       } else if (this._container) {
@@ -209,58 +221,7 @@ class Picture {
       }
     });
   }
-  originTransform(
-    x: number,
-    y: number,
-    k: number,
-    o: number,
-    duration: number = 0,
-  ) {
-    const backdrop = this._backdrop;
-    if (backdrop) {
-      const { wrapper } = this._image || {};
-      if (wrapper) {
-        setStyle(wrapper, {
-          overflow: 'visible',
-          transform: `translate(${x}px,${y}px) scale(${k})`,
-          transition: duration > 0 ? `transform ${duration}ms` : '',
-        });
-      }
-      setStyle(backdrop, {
-        opacity: o,
-        transition: duration > 0 ? `opacity ${duration}ms` : '',
-      });
-      if (duration > 0) {
-        return new Promise<void>((resolve) => {
-          backdrop.ontransitionend = (e) => {
-            // 只有触发事件的目标元素与绑定的目标元素一致，同时触发事件的属性与需要的属性相同，才会执行事件并解绑
-            if (e.target === backdrop && e.propertyName === 'opacity') {
-              backdrop.ontransitionend = null;
-              if (wrapper) {
-                setStyle(wrapper, {
-                  overflow: 'hidden',
-                  transition: 'none',
-                });
-              }
-              setStyle(backdrop, {
-                transition: 'none',
-              });
-              resolve();
-            }
-          };
-        });
-      }
-    }
-    return Promise.resolve();
-  }
 }
-
-type RectSize = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
 
 export type COption = {
   container?: HTMLElement | string; // 容器元素
@@ -274,6 +235,7 @@ export type COption = {
   press?: () => void; // singleTap回调
   longPress?: () => void; // longTap回调
   onResize?: () => void; // 窗口改变时的回调
+  onImageEnd?: (o: boolean) => void; // 每次图片加载成功或失败的时候调用
 };
 
 export default Picture;

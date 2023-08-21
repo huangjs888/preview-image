@@ -2,13 +2,14 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 16:26:11
+ * @LastEditTime: 2023-08-18 10:52:26
  * @Description: ******
  */
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
+import { popupTransform } from '../popup';
 
 export default function pointerEnd(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
@@ -43,11 +44,16 @@ export default function pointerEnd(this: Gallery | Picture, e: GEvent) {
     if (this.isTransitioning()) {
       return;
     }
+    const { entity, wrapper } = (this._images && this._images[this._activeIndex]) || {};
     if (target === 'closures') {
-      this.originTransform(0, 0, 1, 1, 300);
+      popupTransform(
+        { el: this._backdrop, o: 1 },
+        { el: wrapper || null, x: 0, y: 0, k: 1 },
+        { el: null },
+        300,
+      );
       return;
     }
-    const { entity } = (this._images && this._images[this._activeIndex]) || {};
     if (entity) {
       if (entity.isTransitioning()) {
         return;

@@ -49,10 +49,13 @@ body {
   align-items: center;
   justify-content: center;
 }
-.img {
-  width: 320px;
+.imglist .img {
+  width: 270px;
+  height: 180px;
   margin: 12px;
+  -o-object-fit: cover;
+  object-fit: cover;
 }
 
 
-/*# sourceMappingURL=index.f744b45c.css.map*/
+/*# sourceMappingURL=index.818d8461.css.map*/

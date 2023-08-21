@@ -2,12 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-01 16:20:49
+ * @LastEditTime: 2023-08-17 10:36:33
  * @Description: ******
  */
 
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function longTap(this: Gallery | Picture) {
   if (this._isClose) {

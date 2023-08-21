@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-31 16:51:50
+ * @LastEditTime: 2023-08-21 14:51:29
  * @Description: ******
  */
 
@@ -104,7 +104,7 @@ module.exports = (env, argv) => {
         }, */
         {
           test: /\.(j|t)s$/,
-          exclude: /node_modules/,
+          exclude: /node_modules(?!(\/|\\)(@huangjs888(\/|\\)(.+)?))/,
           use: [
             {
               loader: 'babel-loader', // 使用babel转换源代码到配置后的语法
@@ -116,7 +116,7 @@ module.exports = (env, argv) => {
         },
         /* {
           test: /\.js$/,
-          exclude: /node_modules/,
+          // exclude: /node_modules/,
           use: [
             {
               loader: 'babel-loader',
@@ -177,22 +177,22 @@ module.exports = (env, argv) => {
         devServer.app.get('/http/noStoreImage', function (req, res) {
           res.setHeader('Content-Type', 'image/*');
           res.setHeader('Cache-Control', 'no-store');
-          readFileStream(resolve(__dirname, 'image/ok.jpg')).then(
-            (finalData) => {
+          readFileStream(resolve(__dirname, 'image/1.jpg')).then((finalData) => {
+            setTimeout(() => {
               res.write(finalData);
               res.end();
-            },
-          );
+            }, 1);
+          });
         });
         devServer.app.get('/http/maxAgeImage', function (req, res) {
           res.setHeader('Content-Type', 'image/*');
           res.setHeader('Cache-Control', 'max-age=31536000');
-          readFileStream(resolve(__dirname, 'image/ok.jpg')).then(
-            (finalData) => {
+          readFileStream(resolve(__dirname, 'image/ok.jpg')).then((finalData) => {
+            setTimeout(() => {
               res.write(finalData);
               res.end();
-            },
-          );
+            }, 3000);
+          });
         });
         return middlewares;
       },

@@ -9,7 +9,7 @@
 import { type GEvent } from '@huangjs888/gesture';
 import { type EaseFn } from '@huangjs888/transition';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function swipe(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
@@ -130,9 +130,7 @@ export default function swipe(this: Gallery | Picture, e: GEvent) {
     }
     const size = this.getItemSize();
     const index = size === 0 ? 0 : -this._translate / this.getItemSize();
-    this.slide(
-      index > this._activeIndex ? Math.ceil(index) : Math.floor(index),
-    );
+    this.slide(index > this._activeIndex ? Math.ceil(index) : Math.floor(index));
     // @@@2： 此处逻辑和touchstart手势函数里 @@@1 逻辑是处理里同一个问题（二选一，微信用的是@@@1效果）
     // 这里是在真正要slide到上(下)一张时恢复到边界，那里是在手指放上去时直接恢复到边界
     // 在非边缘图片damping恢复时，此时手指放上去后，恢复动画停止了

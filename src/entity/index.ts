@@ -2,16 +2,16 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 15:34:16
+ * @LastEditTime: 2023-08-18 09:27:38
  * @Description: ******
  */
 
 import Transition, {
   TAProperty,
-  TAIOptions,
   easeOutQuad,
   easeOutQuart,
   type EaseFn,
+  type TAIOptions,
 } from '@huangjs888/transition';
 import Transform, { type TransformRaw } from '@huangjs888/transform';
 import { revokeDamping, performDamping } from '@huangjs888/damping';
@@ -97,13 +97,8 @@ class Entity {
   }
   setSizeInfo(sizeInfo?: SizeInfo) {
     if (sizeInfo) {
-      const {
-        containerCenter,
-        containerWidth,
-        containerHeight,
-        naturalWidth,
-        naturalHeight,
-      } = sizeInfo;
+      const { containerCenter, containerWidth, containerHeight, naturalWidth, naturalHeight } =
+        sizeInfo;
       const aspectRatio = naturalWidth / naturalHeight;
       const boxAspectRatio = containerWidth / containerHeight;
       let width = naturalWidth;
@@ -139,12 +134,7 @@ class Entity {
     }
   }
   setRotation(a?: number[]) {
-    if (
-      a &&
-      typeof a[0] === 'number' &&
-      typeof a[1] === 'number' &&
-      a[1] >= a[0]
-    ) {
+    if (a && typeof a[0] === 'number' && typeof a[1] === 'number' && a[1] >= a[0]) {
       // 最大范围 -Infinity 到 + Infinity
       this._rotation = a;
       return;
@@ -157,13 +147,7 @@ class Entity {
     return effectuate(this._rotation);
   }
   setScalation(k?: number[]) {
-    if (
-      k &&
-      typeof k[0] === 'number' &&
-      typeof k[1] === 'number' &&
-      k[1] >= k[0] &&
-      k[0] > 0
-    ) {
+    if (k && typeof k[0] === 'number' && typeof k[1] === 'number' && k[1] >= k[0] && k[0] > 0) {
       this._scalation = k; // 最大范围 0 到 +Infinity (不等于0)
       return;
     }
@@ -182,12 +166,7 @@ class Entity {
     return [this.getXTranslation(k), this.getYTranslation()];
   }
   setXTranslation(x?: number[]) {
-    if (
-      x &&
-      typeof x[0] === 'number' &&
-      typeof x[1] === 'number' &&
-      x[1] >= x[0]
-    ) {
+    if (x && typeof x[0] === 'number' && typeof x[1] === 'number' && x[1] >= x[0]) {
       this._translation[0] = x; // 最大范围 -Infinity 到 + Infinity
       return;
     }
@@ -202,12 +181,7 @@ class Entity {
     return effectuate(this._translation[0], k || this._transform.k || 1);
   }
   setYTranslation(y?: number[]) {
-    if (
-      y &&
-      typeof y[0] === 'number' &&
-      typeof y[1] === 'number' &&
-      y[1] >= y[0]
-    ) {
+    if (y && typeof y[0] === 'number' && typeof y[1] === 'number' && y[1] >= y[0]) {
       this._translation[1] = y; // 最大范围 -Infinity 到 +Infinity
       return;
     }
@@ -242,14 +216,8 @@ class Entity {
       return (
         Math.max(
           2,
-          Math.max(
-            containerWidth / elementWidth,
-            containerHeight / elementHeight,
-          ),
-          Math.min(
-            naturalWidth / containerWidth,
-            naturalHeight / containerHeight,
-          ),
+          Math.max(containerWidth / elementWidth, containerHeight / elementHeight),
+          Math.min(naturalWidth / containerWidth, naturalHeight / containerHeight),
         ) || 1
       );
     };
@@ -316,11 +284,7 @@ class Entity {
     // 直接竖向平移到 y
     return this.transformTo({ y });
   }
-  transform(
-    transformRaw: TransformRaw,
-    point?: number[] | TAIOptions,
-    options?: TAIOptions,
-  ) {
+  transform(transformRaw: TransformRaw, point?: number[] | TAIOptions, options?: TAIOptions) {
     const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this.getTransform();
     let { a, k, x, y } = transformRaw;
     if (typeof a === 'number') {
@@ -337,11 +301,7 @@ class Entity {
     }
     return this.transformTo({ a, k, x, y }, point, options);
   }
-  transformTo(
-    transformRaw: TransformRaw,
-    point?: number[] | TAIOptions,
-    options?: TAIOptions,
-  ) {
+  transformTo(transformRaw: TransformRaw, point?: number[] | TAIOptions, options?: TAIOptions) {
     let _point = point;
     let _options = options;
     if (!options && !Array.isArray(point)) {
@@ -358,14 +318,8 @@ class Entity {
       if (Array.isArray(_point)) {
         const [ox, oy] = this.computeOffset(_point, k);
         const { x: tx = 0, y: ty = 0 } = this._transform;
-        _transformRaw.x = between(
-          (typeof _x === 'number' ? _x : tx) + ox,
-          this.getXTranslation(k),
-        );
-        _transformRaw.y = between(
-          (typeof _y === 'number' ? _y : ty) + oy,
-          this.getYTranslation(k),
-        );
+        _transformRaw.x = between((typeof _x === 'number' ? _x : tx) + ox, this.getXTranslation(k));
+        _transformRaw.y = between((typeof _y === 'number' ? _y : ty) + oy, this.getYTranslation(k));
       } else {
         if (typeof _x === 'number') {
           _transformRaw.x = between(_x, this.getXTranslation(k));
@@ -435,12 +389,7 @@ class Entity {
     // cancel返回值是动画未执行的部分
     return this._transition.cancel().map((value) => {
       // 取消动画时应该把this._transform内的值减掉还未执行的部分
-      const {
-        a: ta = 0,
-        k: tk = 1,
-        x: tx = 0,
-        y: ty = 0,
-      } = this.getTransform();
+      const { a: ta = 0, k: tk = 1, x: tx = 0, y: ty = 0 } = this.getTransform();
       Object.keys(value).forEach((key) => {
         const val = value[key];
         if (key === 'a') {
@@ -466,13 +415,8 @@ class Entity {
     this.transitionRun({ a, k, x, y }, { duration });
   }
   computeOffset(point: number[], k: number, adjust: boolean = false) {
-    const {
-      containerCenter,
-      containerWidth,
-      containerHeight,
-      elementWidth,
-      elementHeight,
-    } = this.getSizeInfo();
+    const { containerCenter, containerWidth, containerHeight, elementWidth, elementHeight } =
+      this.getSizeInfo();
     const { k: tk = 1, x: tx = 0, y: ty = 0 } = this.getTransform();
     const dk = k / tk;
     const [cx, cy] = containerCenter;
@@ -502,13 +446,7 @@ class Entity {
     oy *= 1 - dk;
     return [ox, oy];
   }
-  moveBounce(
-    angle: number,
-    scale: number,
-    deltaX: number,
-    deltaY: number,
-    point: number[] = [],
-  ) {
+  moveBounce(angle: number, scale: number, deltaX: number, deltaY: number, point: number[] = []) {
     let { a = 0, k = 1, x = 0, y = 0 } = this.getTransform();
     const aRange = this.getRotation();
     if (this.isDamping('rotate')) {
@@ -534,15 +472,14 @@ class Entity {
     }
     const [ox, oy] = this.computeOffset(point, k);
     if (this.isDamping('scale')) {
+      const { containerWidth: xMax, containerHeight: yMax } = this.getSizeInfo();
       // 先把当前值反算出阻尼之前的原值
-      const xMax = this._sizeInfo.containerWidth;
       let bx = between(x, this.getXTranslation());
       x = bx + revokeDamping(x - bx, { max: xMax });
       // 再对总值进行总体阻尼计算
       bx = between((x += ox + deltaX), this.getXTranslation(k));
       x = bx + performDamping(x - bx, { max: xMax });
       // 先把当前值反算出阻尼之前的原值
-      const yMax = this._sizeInfo.containerHeight;
       let by = between(y, this.getYTranslation());
       y = by + revokeDamping(y - by, { max: yMax });
       // 再对总值进行总体阻尼计算
@@ -566,10 +503,9 @@ class Entity {
       k = bk * revokeDamping(k / bk, { max: 2, mode: 1 });
     }
     if (this.isDamping('translate')) {
-      const xMax = this._sizeInfo.containerWidth;
+      const { containerWidth: xMax, containerHeight: yMax } = this.getSizeInfo();
       const bx = between(x, this.getXTranslation());
       x = bx + revokeDamping(x - bx, { max: xMax });
-      const yMax = this._sizeInfo.containerHeight;
       const by = between(y, this.getYTranslation());
       y = by + revokeDamping(y - by, { max: yMax });
     } // 重置之前是双指移动，是不允许取消动画的
@@ -591,10 +527,7 @@ class Entity {
         // 需要调整的情况，自己算偏移量，并且旋转置为0
         const [ox, oy] = this.computeOffset(point, dk, this.getDblAdjust());
         const { x: tx = 0, y: ty = 0 } = this.getTransform();
-        this.transformTo(
-          { a: 0, k: dk, x: tx + ox, y: ty + oy },
-          { cancel: false },
-        );
+        this.transformTo({ a: 0, k: dk, x: tx + ox, y: ty + oy }, { cancel: false });
       } else {
         // 交给transformTo
         this.transformTo({ k: dk }, point, { cancel: false });
@@ -621,23 +554,19 @@ class Entity {
       option: (v: number) => { duration: number; easing: EaseFn },
     ) => void,
   ) {
-    const maxBounce =
-      this._sizeInfo[key === 'x' ? 'containerWidth' : 'containerHeight'];
+    const sizeInfo = this.getSizeInfo();
+    const maxBounce = sizeInfo[key === 'x' ? 'containerWidth' : 'containerHeight'];
     const xyScale = 1.2 * this.getDblScale();
     const xyPos = this.getTransform()[key] || 0;
     const xyRange = this.getTranslation()[key === 'x' ? 0 : 1];
     const sign = stretch > 0 ? 1 : -1;
     // 对距离进行优化(最大值是当前双击比例下图片宽度)
-    const _stretch =
-      Math.max(1, Math.min(Math.abs(stretch), xyScale * maxBounce)) * sign;
+    const _stretch = Math.max(1, Math.min(Math.abs(stretch), xyScale * maxBounce)) * sign;
     // 对时间进行优化
     const _duration = Math.max(800, Math.min(2500, duration));
     if (isBetween(xyPos + _stretch, xyRange)) {
       // 如果加上惯性滑动距离之后图片未超出边界，则图片直接移动
-      this.transitionRun(
-        { [key]: xyPos + _stretch },
-        { easing: easeOutQuad, duration: _duration },
-      );
+      this.transitionRun({ [key]: xyPos + _stretch }, { easing: easeOutQuad, duration: _duration });
     } else {
       // 根据边界算出到达边界要走的的距离，有可能松开时已经超出边界，此时xySwipe是需要减掉的超出部分距离
       const xySwipe = between(xyPos + _stretch, xyRange) - xyPos;
@@ -645,9 +574,7 @@ class Entity {
       if (this.isDamping('translate')) {
         // 计算速度时，如果松开时超出边界，xySwipe视作0，其实得到的就是初始速度
         const velocity =
-          (isBetween(xyPos, xyRange)
-            ? Math.sqrt(1 - Math.abs(xySwipe / _stretch))
-            : 1) *
+          (isBetween(xyPos, xyRange) ? Math.sqrt(1 - Math.abs(xySwipe / _stretch)) : 1) *
           ((2 * Math.abs(_stretch)) / _duration);
         // 根据到达边界时速度的大小计算出将要Damping的距离（一个与速度成正比计算方式，最大值不能超过容器宽度的1/4）
         xyBounce = Math.min(30 * velocity, maxBounce / 4) * sign;

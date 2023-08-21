@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 15:25:08
+ * @LastEditTime: 2023-08-17 10:36:53
  * @Description: ******
  */
 
@@ -10,15 +10,12 @@ import { type GEvent } from '@huangjs888/gesture';
 import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { between } from '../entity/utils';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
+import { popupTransform } from '../popup';
 
 const minScale = 0.3; // swipeClose下拉最小缩放比例
 const minOpacity = 0.01; // swipeClose下拉最小透明度
-const isRightDown = (
-  direction: string,
-  [x0, y0]: number[],
-  [x1, y1]: number[],
-) => {
+const isRightDown = (direction: string, [x0, y0]: number[], [x1, y1]: number[]) => {
   if (direction === 'vertical') {
     return Math.abs(x0 - x1) > 4 * Math.abs(y0 - y1) && x0 - x1 <= 0;
   } else {
@@ -45,8 +42,7 @@ export default function pointerMove(this: Gallery | Picture, e: GEvent) {
     if (this.isTransitioning()) {
       return;
     }
-    const { entity, wrapper } =
-      (this._images && this._images[this._activeIndex]) || {};
+    const { entity, wrapper } = (this._images && this._images[this._activeIndex]) || {};
     const length = (this._images || []).length;
     if (entity) {
       if (entity.isTransitioning()) {
@@ -142,10 +138,9 @@ export default function pointerMove(this: Gallery | Picture, e: GEvent) {
           // 内部图片需要移动的距离
           entity.moveBounce(0, 1, _deltaX, _deltaY, point);
           // 外部swiper需要移动的距离
-          this.transitionRun(
-            translate + performDamping(_delta, { max: this.getItemSize() }),
-            { duration: 0 },
-          );
+          this.transitionRun(translate + performDamping(_delta, { max: this.getItemSize() }), {
+            duration: 0,
+          });
         } else {
           entity.moveBounce(angle, scale, _deltaX, _deltaY, point);
           if (diff !== 0) {
@@ -158,9 +153,7 @@ export default function pointerMove(this: Gallery | Picture, e: GEvent) {
     } else {
       if (this._moveTarget === 'none') {
         this._moveTarget =
-          this._swipeClose && isRightDown(this._direction, point0, point)
-            ? 'closures'
-            : 'outside';
+          this._swipeClose && isRightDown(this._direction, point0, point) ? 'closures' : 'outside';
       }
     }
     if (this._moveTarget === 'closures') {
@@ -168,16 +161,12 @@ export default function pointerMove(this: Gallery | Picture, e: GEvent) {
       const { width = 0, height = 0, left = 0, top = 0 } = this._rectSize || {};
       const k = Math.min(
         Math.max(
-          1 -
-            ((this._direction === 'vertical'
-              ? moveX / width
-              : moveY / height) || 0),
+          1 - ((this._direction === 'vertical' ? moveX / width : moveY / height) || 0),
           minScale,
         ),
         1,
       );
-      const o =
-        minOpacity + ((k - minScale) * (1 - minOpacity)) / (1 - minScale);
+      const o = minOpacity + ((k - minScale) * (1 - minOpacity)) / (1 - minScale);
       let x = 0;
       let y = 0;
       if (wrapper) {
@@ -195,20 +184,16 @@ export default function pointerMove(this: Gallery | Picture, e: GEvent) {
         x = _x + deltaX + (point[0] - (_x + left + width / 2)) * (1 - k / _k);
         y = _y + deltaY + (point[1] - (_y + top + height / 2)) * (1 - k / _k);
       }
-      this.originTransform(x, y, k, o, 0);
+      popupTransform({ el: this._backdrop, o }, { el: wrapper || null, x, y, k }, { el: null });
       return;
     }
     // 非内部图片操作，均是外部swiper操作
     const swiperRange = [(1 - length) * this.getItemSize(), 0];
     // 先把当前值反算出阻尼之前的原值
     let bt = between(this._translate, swiperRange);
-    let t =
-      bt + revokeDamping(this._translate - bt, { max: this.getItemSize() });
+    let t = bt + revokeDamping(this._translate - bt, { max: this.getItemSize() });
     // 再对总值进行总体阻尼计算
-    bt = between(
-      (t += this._direction === 'vertical' ? deltaY : deltaX),
-      swiperRange,
-    );
+    bt = between((t += this._direction === 'vertical' ? deltaY : deltaX), swiperRange);
     t = bt + performDamping(t - bt, { max: this.getItemSize() });
     this.transitionRun(t, { duration: 0 });
   } else {

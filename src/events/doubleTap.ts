@@ -2,13 +2,13 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 12:30:28
+ * @LastEditTime: 2023-08-17 10:36:10
  * @Description: ******
  */
 
 import { type GEvent } from '@huangjs888/gesture';
 import Gallery from '../gallery';
-import Picture from '../picture';
+import type Picture from '../picture';
 
 export default function doubleTap(this: Gallery | Picture, e: GEvent) {
   if (this._isClose) {
@@ -23,8 +23,7 @@ export default function doubleTap(this: Gallery | Picture, e: GEvent) {
     const translate = -this._activeIndex * this.getItemSize();
     const diff = Math.round(this._translate - translate);
     if (diff === 0) {
-      const { entity } =
-        (this._images && this._images[this._activeIndex]) || {};
+      const { entity } = (this._images && this._images[this._activeIndex]) || {};
       if (entity) {
         if (entity.isTransitioning()) {
           return;
