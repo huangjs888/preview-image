@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-21 14:51:29
+ * @LastEditTime: 2023-09-08 15:22:24
  * @Description: ******
  */
 
@@ -177,21 +177,21 @@ module.exports = (env, argv) => {
         devServer.app.get('/http/noStoreImage', function (req, res) {
           res.setHeader('Content-Type', 'image/*');
           res.setHeader('Cache-Control', 'no-store');
-          readFileStream(resolve(__dirname, 'image/1.jpg')).then((finalData) => {
+          readFileStream(resolve(__dirname, 'image/ok.jpg')).then((finalData) => {
             setTimeout(() => {
               res.write(finalData);
               res.end();
-            }, 1);
+            }, 20000);
           });
         });
         devServer.app.get('/http/maxAgeImage', function (req, res) {
           res.setHeader('Content-Type', 'image/*');
           res.setHeader('Cache-Control', 'max-age=31536000');
-          readFileStream(resolve(__dirname, 'image/ok.jpg')).then((finalData) => {
+          readFileStream(resolve(__dirname, 'image/1.jpg')).then((finalData) => {
             setTimeout(() => {
               res.write(finalData);
               res.end();
-            }, 3000);
+            }, 10000);
           });
         });
         return middlewares;

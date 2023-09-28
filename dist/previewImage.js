@@ -2305,7 +2305,7 @@ __webpack_require__.r(__webpack_exports__);
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 17:24:30
+ * @LastEditTime: 2023-09-07 10:05:42
  * @Description: ******
  */
 
@@ -2315,14 +2315,15 @@ function setStyle(ele, css) {
   if (ele) {
     var cssText = '';
     _babel_runtime_corejs3_core_js_object_keys__WEBPACK_IMPORTED_MODULE_0___default()(css).forEach(function (k) {
-      var key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+      var key = k.replace(/([A-Z])/g, '-$1').toLocaleLowerCase();
+      // const k = key.replace(/-(.?)/g, (t) => t.replace('-', '').toLocaleUpperCase());
       if (css[k] !== 0 && !css[k]) {
         // 删除
-        ele.style.setProperty(key, '');
+        ele.style.removeProperty(key);
       } else {
         var suffix = typeof css[k] === 'number' && /^[a-z]/.test(key) && autoPxReg.test("-" + key) ? 'px' : '';
         var val = "" + css[k] + suffix;
-        cssText += key + ":" + val + ";";
+        cssText += key + ": " + val + ";";
       }
     });
     if (cssText) {
@@ -2499,7 +2500,7 @@ __webpack_require__.r(__webpack_exports__);
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-18 09:27:38
+ * @LastEditTime: 2023-09-04 15:28:30
  * @Description: ******
  */
 

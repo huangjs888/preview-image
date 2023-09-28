@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 17:24:30
+ * @LastEditTime: 2023-09-07 10:05:42
  * @Description: ******
  */
 
@@ -14,15 +14,16 @@ export function setStyle(ele: HTMLElement, css: { [key: string]: string | number
   if (ele) {
     let cssText = '';
     Object.keys(css).forEach((k: string) => {
-      const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+      const key = k.replace(/([A-Z])/g, '-$1').toLocaleLowerCase();
+      // const k = key.replace(/-(.?)/g, (t) => t.replace('-', '').toLocaleUpperCase());
       if (css[k] !== 0 && !css[k]) {
         // 删除
-        ele.style.setProperty(key, '');
+        ele.style.removeProperty(key);
       } else {
         const suffix =
           typeof css[k] === 'number' && /^[a-z]/.test(key) && autoPxReg.test(`-${key}`) ? 'px' : '';
         const val = `${css[k]}${suffix}`;
-        cssText += `${key}:${val};`;
+        cssText += `${key}: ${val};`;
       }
     });
     if (cssText) {
