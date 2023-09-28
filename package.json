@@ -1,98 +1,163 @@
 {
   "name": "@huangjs888/preview-image",
-  "version": "1.3.1",
-  "description": "Preview images",
-  "main": "lib/index.js",
-  "types": "es/index.d.ts",
-  "module": "es/index.js",
-  "unpkg": "dist/previewImage.js",
+  "version": "1.0.0",
+  "description": "Preview Images",
+  "types": "./types/index.d.ts",
+  "module": "./es/preview-image.min.js",
+  "main": "./lib/preview-image.min.js",
+  "unpkg": "./dist/preview-image.min.js",
   "exports": {
-    "umd": "./dist/previewImage.min.js",
-    "types": "./es/index.d.ts",
-    "import": "./es/index.js",
-    "default": "./lib/index.js"
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./es/preview-image.min.js",
+      "default": "./lib/preview-image.min.js",
+      "umd": "./dist/preview-image.min.js"
+    },
+    "./core": {
+      "types": "./types/index.d.ts",
+      "import": "./es/preview-image.min.js",
+      "default": "./lib/preview-image.min.js",
+      "umd": "./dist/preview-image.min.js"
+    },
+    "./react": {
+      "types": "./types/react/index.d.ts",
+      "import": "./es/react-preview-image.min.js",
+      "default": "./lib/react-preview-image.min.js",
+      "umd": "./dist/react-preview-image.min.js"
+    },
+    "./css": "./lib/preview-image.min.css",
+    "./preview-image.css": "./lib/preview-image.min.css",
+    "./preview-image.min.css": "./lib/preview-image.min.css"
+  },
+  "typesVersions": {
+    "*": {
+      "core": [
+        "./types/index.d.ts"
+      ],
+      "react": [
+        "./types/react/index.d.ts"
+      ]
+    }
   },
   "scripts": {
-    "start": "npm run build && npm run example:prod && npm run example:dev",
-    "build": "npm run clean && npm run lint && npm run build:types && npm run build:esm && npm run build:cjs && npm run build:umd",
-    "build:merge": "npm run clean && npm run lint && npm run build:types:merge && npm run build:esm:merge && npm run build:cjs:merge && npm run build:umd",
-    "build:cjs": "cross-env MOD_ENV=cjs babel --extensions .ts src -d lib",
-    "build:esm": "cross-env MOD_ENV=esm babel --extensions .ts src -d es",
+    "start": "npm run build:prod",
+    "dev": "npm start && cd ./example && npm start",
+    "publish": "npm run build:prod",
+    "build:dev": "npm run clean && npm run lint && npm run build:types && npm run build:esm && npm run build:cjs && npm run build:umd",
+    "build:babel": "npm run clean && npm run lint && npm run build:types && npm run build:cjs:babel && npm run build:esm:babel && npm run build:umd",
+    "build:prod": "npm run clean && npm run lint && npm run build:types && npm run build:esm:prod && npm run build:cjs:prod && npm run build:umd:prod",
     "build:types": "tsc --declaration",
-    "build:cjs:merge": "cross-env NODE_ENV=development MOD_ENV=cjs webpack --config webpack.config.js",
-    "build:esm:merge": "cross-env NODE_ENV=development MOD_ENV=esm webpack --config webpack.config.js",
-    "build:types:merge": "tsc --outFile es/previewImage.d.ts --declaration",
-    "build:umd": "npm run build:umd:dev && npm run build:umd:prod",
-    "build:umd:dev": "cross-env NODE_ENV=development MOD_ENV=umd webpack --config webpack.config.js",
-    "build:umd:prod": "cross-env NODE_ENV=production MOD_ENV=umd webpack --config webpack.config.js",
-    "example:prod": "rimraf docs && webpack --mode production --config ./example/webpack.config.js",
-    "example:dev": "webpack server  --mode development --config ./example/webpack.config.js",
-    "clean": "rimraf lib && rimraf dist && rimraf es",
-    "lint": "eslint . --ext .js,.ts"
+    "build:cjs:babel": "cross-env MOD_ENV=cjs BABEL_ENV=babel babel --extensions .ts,.tsx src -d lib",
+    "build:esm:babel": "cross-env MOD_ENV=esm BABEL_ENV=babel babel --extensions .ts,.tsx src -d es",
+    "build:cjs": "cross-env NODE_ENV=development MOD_ENV=cjs rollup -c --bundleConfigAsCjs",
+    "build:cjs:prod": "cross-env NODE_ENV=production MOD_ENV=cjs rollup -c --bundleConfigAsCjs",
+    "build:esm": "cross-env NODE_ENV=development MOD_ENV=esm rollup -c --bundleConfigAsCjs",
+    "build:esm:prod": "cross-env NODE_ENV=production MOD_ENV=esm rollup -c --bundleConfigAsCjs",
+    "build:umd": "cross-env NODE_ENV=development MOD_ENV=umd rollup -c --bundleConfigAsCjs",
+    "build:umd:prod": "cross-env NODE_ENV=production MOD_ENV=umd rollup -c --bundleConfigAsCjs",
+    "clean": "rimraf types && rimraf lib && rimraf dist && rimraf es",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "files": [
     "es",
     "dist",
     "lib",
+    "types",
     "README.md"
   ],
   "keywords": [
     "huangjs",
     "huangjs888",
+    "react",
+    "component",
     "image",
+    "react-image",
+    "preview",
+    "react-preview",
     "image-view",
+    "react-image-view",
     "imageViewer",
     "image-viewer",
+    "react-image-viewer",
     "previewImage",
+    "react-preview-image",
     "preview-image"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/huangjs888/previewImage.git"
+    "url": "git+https://github.com/huangjs888/preview-image.git"
   },
   "bugs": {
-    "url": "https://github.com/huangjs888/previewImage/issues"
+    "url": "https://github.com/huangjs888/preview-image/issues"
   },
-  "homepage": "https://github.com/huangjs888/previewImage#readme",
+  "homepage": "https://github.com/huangjs888/preview-image#readme",
   "author": {
     "name": "Huangjs",
     "email": "1170384651@qq.com"
   },
   "license": "MIT",
-  "peerDependenciesMeta": {},
+  "peerDependencies": {
+    "@types/react": ">=16.8 || ^17.0 || ^18.0",
+    "@types/react-dom": "^16.8 || ^17.0 || ^18.0",
+    "react": "^16.8 || ^17.0 || ^18.0",
+    "react-dom": "^16.8 || ^17.0 || ^18.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@babel/cli": "^7.22.10",
     "@babel/core": "^7.22.10",
     "@babel/plugin-transform-runtime": "^7.22.10",
     "@babel/preset-env": "^7.22.10",
+    "@babel/preset-react": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.3",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-url": "^8.0.1",
+    "@rollup/pluginutils": "^5.0.3",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
+    "@svgr/rollup": "^8.0.1",
+    "@types/node": "^20.6.0",
+    "@types/react": "^18.2.20",
+    "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
-    "babel-loader": "^9.1.3",
+    "autoprefixer": "^10.4.14",
     "cross-env": "^7.0.3",
-    "css-loader": "^6.8.1",
     "eslint": "^8.47.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "html-webpack-plugin": "^5.5.3",
+    "eslint-plugin-react": "^7.33.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "less": "^4.2.0",
-    "less-loader": "^11.1.3",
-    "mini-css-extract-plugin": "^2.7.6",
+    "less-plugin-npm-import": "^2.1.0",
+    "postcss": "^8.4.27",
     "prettier": "^3.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rimraf": "^5.0.1",
-    "style-loader": "^3.3.3",
-    "typescript": "^5.1.6",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "rollup": "^3.28.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@babel/runtime-corejs3": "^7.22.10",
-    "@huangjs888/damping": "^2.1.1",
-    "@huangjs888/gesture": "^2.2.1",
-    "@huangjs888/load-image": "^1.1.1",
-    "@huangjs888/transform": "^1.1.1",
-    "@huangjs888/transition": "^1.1.1",
-    "swiper": "^10.3.0"
+    "@babel/runtime-corejs3": "^7.22.10"
   }
 }

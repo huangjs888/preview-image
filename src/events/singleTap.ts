@@ -2,35 +2,21 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-01 16:21:03
+ * @LastEditTime: 2023-09-18 17:21:23
  * @Description: ******
  */
 
-import Gallery from '../gallery';
-import type Picture from '../picture';
+import type { IGestureEvent } from '../modules/gesture';
+import type { SwiperModel, ItemModel, ICallback } from '../core';
 
-export default function singleTap(this: Gallery | Picture) {
-  if (this._isClose) {
+export default function singleTap(
+  this: SwiperModel<ItemModel | null>,
+  event: IGestureEvent,
+  { internalClose }: ICallback,
+) {
+  const item = this.currentItem();
+  if (this.running() || item?.running()) {
     return;
   }
-  if (this instanceof Gallery) {
-    if (this.isTransitioning()) {
-      return;
-    }
-    const { entity } = (this._images && this._images[this._activeIndex]) || {};
-    if (entity && entity.isTransitioning()) {
-      return;
-    }
-    if (typeof this._press === 'function') {
-      this._press();
-    }
-  } else {
-    const { entity } = this._image || {};
-    if (entity && entity.isTransitioning()) {
-      return;
-    }
-    if (typeof this._press === 'function') {
-      this._press();
-    }
-  }
+  internalClose?.(event);
 }

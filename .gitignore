@@ -67,6 +67,7 @@ typings/
 # esm
 # build
 # dist
+example
 temp
 .cache
 .DS_Store

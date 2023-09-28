@@ -1,47 +1,13 @@
 /*
  * @Author: Huangjs
- * @Date: 2022-05-11 17:49:45
+ * @Date: 2023-08-08 16:46:18
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-18 14:27:09
+ * @LastEditTime: 2023-09-25 16:24:45
  * @Description: ******
  */
 
-import Gallery, { type SOption } from './gallery';
-import Picture from './picture';
-import Entity from './entity';
-import loadImage from './image';
+import previewImage from './native';
 
-export * from './gallery';
+export * from './native';
 
-export * from './picture';
-
-export * from './entity';
-
-export * from './image';
-
-export { Gallery, Picture, Entity, loadImage };
-
-export default function previewImage({
-  urls,
-  current,
-  showMenu,
-  ...restOption
-}: {
-  urls: string[];
-  current?: string;
-  showMenu?: () => void;
-} & SOption) {
-  const index = !current ? 0 : urls.indexOf(current);
-  const gallery = new Gallery({
-    imageUrls: urls,
-    activeIndex: index,
-    longPress: () => {
-      typeof showMenu === 'function' && showMenu();
-    },
-    press: () => {
-      gallery.close();
-    },
-    ...restOption,
-  });
-  gallery.open();
-}
+export default previewImage;
