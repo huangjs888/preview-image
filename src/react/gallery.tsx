@@ -341,7 +341,11 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
               onPopupMenu?.(e);
             },
             internalClose: (e: IGestureEvent) => {
-              onClose?.(e);
+              if (typeof onClose === 'function') {
+                onClose(e);
+                // 返回true通知真的关闭了
+                return true;
+              }
             },
             openStyleChange: (computedStyle: (style: IOpenStyle, bbox: IBBox) => IOpenStyle) => {
               setOpenStyle((prevOpenStyle) => computedStyle(prevOpenStyle, viewBox));

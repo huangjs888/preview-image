@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-19 14:12:23
+ * @LastEditTime: 2023-09-28 12:24:38
  * @Description: ******
  */
 
@@ -181,12 +181,13 @@ export default function swipe(
     return;
   }
   if (this._moveTarget === 'closures') {
-    // 这里设置目的是不再执行end里的closures
-    this._moveTarget = 'none';
     // 如果滑动方向是向下的或向右的，执行关闭操作
     const isClose =
       (direction === 'Down' && this.isHorizontal()) || (direction === 'Right' && this.isVertical());
-    this.swipeClose() && isClose && internalClose?.(event);
+    if (this.swipeClose() && isClose && internalClose?.(event)) {
+      // 这里设置目的是真正关闭后不再执行end里的closures
+      this._moveTarget = 'none';
+    }
     return;
   }
   const size = this.itemSize();

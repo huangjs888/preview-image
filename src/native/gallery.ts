@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 10:15:52
+ * @LastEditTime: 2023-09-28 12:23:34
  * @Description: ******
  */
 
@@ -168,7 +168,11 @@ class Gallery extends SwiperModel<Image> {
             onPopupMenu?.(e);
           },
           internalClose: (e: IGestureEvent) => {
-            onClose?.(e);
+            if (typeof onClose === 'function') {
+              onClose(e);
+              // 返回true通知真的关闭了
+              return true;
+            }
           },
           openStyleChange: (computedStyle: (style: IOpenStyle, bbox: IBBox) => IOpenStyle) => {
             this.openStyle(computedStyle(this._openStyle || {}, this._viewBox || {}));
