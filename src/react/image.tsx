@@ -2,16 +2,16 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 09:47:51
+ * @LastEditTime: 2023-10-10 16:07:38
  * @Description: ******
  */
 
 import React from 'react';
-import { isTouchable } from '../modules/gesture';
+import { isTouchable } from '@huangjs888/gesture';
 import { useChanged } from './useChanged';
 import { useDerivedState } from './useDerivedState';
 import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
-import { ItemModel, type IBBox } from '../core';
+import { ItemModel, type ISPBox } from '../core';
 import Loading from '../svg/loading.svg';
 import Error from '../svg/error.svg';
 import '../style/image.less';
@@ -31,7 +31,7 @@ export interface IImageProps {
   error?: false | (() => React.ReactElement | null); // 是否显示错误提示
   loading?: false | (() => React.ReactElement | null); // 是否显示loading信息
   active?: boolean; // 是否准备加载
-  viewBox?: IBBox; // 装在image的容器的bbox
+  vspBox?: ISPBox; // 装在image的容器的位置和尺寸
 }
 
 const defaultRenderError = () => {
@@ -54,7 +54,7 @@ const defaultRenderLoading = () => {
 
 export default React.forwardRef<IImageRef, IImageProps>(
   (
-    { src = '', alt = '', style, imgStyle, className, viewBox, loading, error, active = true },
+    { src = '', alt = '', style, imgStyle, className, vspBox, loading, error, active = true },
     ref,
   ) => {
     const wrapperRef = React.useRef<HTMLDivElement | null>(null);
@@ -100,10 +100,10 @@ export default React.forwardRef<IImageRef, IImageProps>(
       if (imageEl && status === 2) {
         const nWidth = imageEl.naturalWidth;
         const nHeight = imageEl.naturalHeight;
-        const { left = 0, top = 0, width = 0, height = 0 } = viewBox || {};
-        size.containerCenter = [left + width / 2, top + height / 2];
-        size.containerWidth = width;
-        size.containerHeight = height;
+        const { x = 0, y = 0, w = 0, h = 0 } = vspBox || {};
+        size.containerCenter = [x, y];
+        size.containerWidth = w;
+        size.containerHeight = h;
         size.naturalWidth = nWidth;
         size.naturalHeight = nHeight;
       }
@@ -115,14 +115,14 @@ export default React.forwardRef<IImageRef, IImageProps>(
         _imageSize.height = elementHeight;
       }
       return _imageSize;
-    }, [viewBox, status]);
+    }, [vspBox, status]);
 
     return (
       <div
         ref={wrapperRef}
         className={`preview-image__image__wrapper${!className ? '' : ` ${className}`}`}
         style={{
-          alignItems: ((viewBox || {}).height || 0) < imageSize.height ? 'flex-start' : 'center',
+          alignItems: (vspBox?.h || 0) < imageSize.height ? 'flex-start' : 'center',
           ...(style || {}),
         }}>
         <img

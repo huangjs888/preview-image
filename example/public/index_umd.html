@@ -1,0 +1,180 @@
+<!--
+ * @Author: Huangjs
+ * @Date: 2021-10-15 15:24:21
+ * @LastEditors: Huangjs
+ * @LastEditTime: 2023-10-10 16:26:33
+ * @Description: ******
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scaleable=no"
+      name="viewport" />
+    <title>图片查看</title>
+    <script src="../../dist/preview-image.min.js"></script>
+    <link rel="stylesheet" href="../../dist/preview-image.min.css" />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-color: #eee;
+      }
+      .imglist {
+        margin: 20px;
+      }
+      .img {
+        width: 90px;
+        height: 90px;
+        margin: 12px;
+        -o-object-fit: cover;
+        object-fit: cover;
+      }
+      #transform {
+        position: fixed;
+        top: 10%;
+        left: 45%;
+        z-index: 10000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="imglist">
+      <img class="img" src="../src/statics/ok.jpg" />
+      <img
+        class="img"
+        src="https://react.docschina.org/images/home/community/react_conf_hallway.webp" />
+      <img class="img" src="../src/statics/ko.jpg" />
+      <img class="img" src="https://react.docschina.org/images/home/conf2019/cover.svg" />
+
+      <img class="img" src="http://10.5.13.133:9090/example/noStoreImage" />
+      <img class="img" src="http://10.5.13.133:9090/example/maxAgeImage" />
+      <img
+        class="img"
+        src="https://github.githubassets.com/images/modules/site/home-campaign/342af.webp" />
+      <img class="img" src="https://github.githubassets.com/images/modules/site/home/globe.jpg" />
+    </div>
+    <div id="gallery"></div>
+    <button id="transform">变换</button>
+    <script>
+      (function () {
+        const imgDoms = document.querySelectorAll('.img');
+        const imgUrls = [];
+        imgDoms.forEach((a) => {
+          const current = a.src;
+          imgUrls.push(current);
+          a.onclick = (e) => {
+            const { left, top, width, height } = a.getBoundingClientRect();
+            const thumbnail = { x: left + width / 2, y: top + height / 2, w: width, h: height };
+            // 如果不是缩略图，此时可以获取点击位置
+            /* const thumbnail = {
+              x: (e.touches ?? [e])[0]?.pageX,
+              y: (e.touches ?? [e])[0]?.pageY,
+              w: 0,
+              h: 0,
+            }; */
+            window.PreviewImage.default({
+              current,
+              urls: imgUrls,
+              showMenu: () => {
+                alert('rawjs');
+              },
+              thumbnail,
+            });
+          };
+        });
+        const gDom = document.querySelector('#gallery');
+        const tDom = document.querySelector('#transform');
+        const gallery = new window.PreviewImage.Gallery({
+          container: gDom,
+          imageUrls: imgUrls,
+          current: 1,
+          itemGap: 10,
+          direction: 'vertical',
+          isLazy: false,
+          destroyOnClose: true,
+          onPopupMenu: () => {
+            alert('onPopupMenu');
+          },
+          onClose: () => {
+            gallery.close();
+          },
+          onChange: () => {
+            console.log('onChange');
+          },
+          onAfterChange: () => {
+            console.log('onAfterChange');
+          },
+          onAfterClose: () => {
+            console.log('onAfterClose');
+            gDom.style.display = 'none';
+            tDom.style.display = 'none';
+          },
+          onAfterOpenChange: () => {
+            console.log('onAfterOpenChange');
+          },
+        });
+        gallery.open();
+        tDom.onclick = () => {
+          const image = gallery.currentItem();
+          if (image) {
+            image.setTranslation([
+              [-Infinity, Infinity],
+              [-Infinity, Infinity],
+            ]);
+            image.transformTo(
+              { y: -141 },
+              {
+                easing: (v) => v,
+                duration: 3000,
+                before: (progress) => {
+                  let _progress = 0;
+                  if (progress <= 0.2) {
+                    _progress = 0 - progress / 0.2;
+                  } else if (progress <= 0.8) {
+                    _progress = progress / 0.2 - 2;
+                  } else if (progress <= 1) {
+                    _progress = 6 - progress / 0.2;
+                  }
+                  return _progress;
+                },
+              },
+            );
+            setTimeout(() => {
+              image
+                .transformTo(
+                  { y: 0 },
+                  {
+                    easing: (x) => {
+                      const n1 = 7.5625;
+                      const d1 = 2.75;
+
+                      if (x < 1 / d1) {
+                        return n1 * x * x;
+                      } else if (x < 2 / d1) {
+                        return n1 * (x -= 1.5 / d1) * x + 0.75;
+                      } else if (x < 2.5 / d1) {
+                        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+                      } else {
+                        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+                      }
+                    },
+                    duration: 1000,
+                  },
+                )
+                .then(() => {
+                  image.setTranslation();
+                });
+            }, 4000);
+          }
+        };
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #eee;
+}
+.app {
+  text-align: center;
+  margin: 20px;
+}
+.app .imglist {
+  margin-top: 20px;
+}
+.app .imglist .img {
+  width: 90px;
+  height: 90px;
+  margin: 12px;
+  -o-object-fit: cover;
+  object-fit: cover;
+}

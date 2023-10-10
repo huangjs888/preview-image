@@ -1,23 +1,5 @@
-import Transition, { type ITransitionOptions, type IAnimationExtendOptions } from '../modules/transition';
-import { type IElement } from '../modules/lightdom';
-export type IBBox = {
-    left?: number;
-    top?: number;
-    width?: number;
-    height?: number;
-};
-export type ICallback = {
-    [key: string]: Function;
-};
-export type IOpenStyle = {
-    o?: number;
-    k?: number;
-    x?: number;
-    y?: number;
-    w?: number;
-    h?: number;
-    t?: number;
-};
+import Transition, { type ITransitionOptions, type IAnimationExtendOptions } from '@huangjs888/transition';
+import { type IElement } from '@huangjs888/lightdom';
 declare class SwiperModel<T extends Object | null> extends Transition {
     _direction: IDirection;
     _itemModels: T[];
@@ -48,5 +30,19 @@ export type SwiperOption<T> = {
     itemSize?: number;
 } & ITransitionOptions & {
     transitionEl?: IElement;
+};
+export type ISPBox = {
+    x?: number;
+    y?: number;
+    w?: number;
+    h?: number;
+};
+export type IOpenStyle = {
+    o?: number;
+    k?: number;
+    t?: number;
+} & ISPBox;
+export type ICallback = {
+    [key: string]: Function;
 };
 export default SwiperModel;

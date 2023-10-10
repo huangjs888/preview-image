@@ -2,12 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:46:18
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-25 16:24:45
+ * @LastEditTime: 2023-10-10 16:12:14
  * @Description: ******
  */
 
-import previewImage from './native';
+import previewImage from './rawjs';
 
-export * from './native';
+export * from './rawjs';
 
 export default previewImage;

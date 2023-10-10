@@ -1,7 +1,7 @@
 import React from 'react';
-import { type IGestureEvent } from '../modules/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture/react';
 import { type IContainer } from './portal';
-import { SwiperModel, type ItemModel, type IBBox, type IDirection } from '../core';
+import { SwiperModel, type ItemModel, type ISPBox, type IDirection } from '../core';
 import '../style/gallery.less';
 type IGalleryRef = {
     findDOMElement: () => Element | null | undefined;
@@ -21,7 +21,7 @@ export type IGalleryProps = {
     container?: IContainer;
     destroyOnClose?: boolean;
     enableSwipeClose?: boolean;
-    originBox?: IBBox;
+    thumbnail?: ISPBox;
     imageUrls?: string[];
     itemGap?: number;
     direction?: IDirection;

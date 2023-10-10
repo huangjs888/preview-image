@@ -2,12 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 12:24:38
+ * @LastEditTime: 2023-10-10 16:11:24
  * @Description: ******
  */
 
-import type { IGestureEvent } from '../modules/gesture';
-import { Value, type IAnimationExtendOptions } from '../modules/transition';
+import type { IGestureEvent } from '@huangjs888/gesture';
+import { Value, type IAnimationExtendOptions } from '@huangjs888/transition';
 import {
   type SwiperModel,
   type ItemModel,

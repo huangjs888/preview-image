@@ -1,3 +1,3 @@
-import previewImage from './native';
-export * from './native';
+import previewImage from './rawjs';
+export * from './rawjs';
 export default previewImage;

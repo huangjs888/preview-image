@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 11:00:25
+ * @LastEditTime: 2023-10-10 16:13:50
  * @Description: ******
 -->
 ## preview-image
@@ -22,9 +22,9 @@ H5 预览图片
   </body>
 ```
 
-### Native
+### Rawjs
 
-```javascript
+```js
 
 import previewImage from '@huangjs888/previewImage';
 
@@ -39,7 +39,7 @@ imgDoms.forEach((a) => {
       current,
       urls: imgUrls,
       showMenu: () => {
-        alert('native');
+        alert('rawjs');
       },
       originRect: { left, top, width, height },
     });
@@ -49,7 +49,7 @@ imgDoms.forEach((a) => {
 ```
 ### React
 
-```javascript
+```js
 
 import React from 'react';
 import PreviewImage from '@huangjs888/preview-image/react';
@@ -93,4 +93,4 @@ function App() {
   
 ```
 
-在线预览地址:[https://huangjs888.github.io/preview-image/](https://huangjs888.github.io/preview-image/ "预览")
+在线预览地址：[https://huangjs888.github.io/preview-image/](https://huangjs888.github.io/preview-image/ "预览")

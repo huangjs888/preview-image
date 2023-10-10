@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-26 10:39:10
+ * @LastEditTime: 2023-10-10 16:03:01
  * @Description: ******
  */
 
@@ -10,30 +10,9 @@ import Transition, {
   Value,
   type ITransitionOptions,
   type IAnimationExtendOptions,
-} from '../modules/transition';
-import { type IElement } from '../modules/lightdom';
+} from '@huangjs888/transition';
+import { type IElement } from '@huangjs888/lightdom';
 import { defaultAnimationExtendOptions } from './defaultAnimationExtendOptions';
-
-export type IBBox = {
-  left?: number;
-  top?: number;
-  width?: number;
-  height?: number;
-};
-
-export type ICallback = {
-  [key: string]: Function;
-};
-
-export type IOpenStyle = {
-  o?: number;
-  k?: number;
-  x?: number;
-  y?: number;
-  w?: number;
-  h?: number;
-  t?: number;
-};
 
 class SwiperModel<T extends Object | null> extends Transition {
   _direction: IDirection = 'horizontal';
@@ -146,5 +125,22 @@ export type SwiperOption<T> = {
   itemModels?: T | T[];
   itemSize?: number;
 } & ITransitionOptions & { transitionEl?: IElement };
+
+export type ISPBox = {
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
+};
+
+export type IOpenStyle = {
+  o?: number;
+  k?: number;
+  t?: number;
+} & ISPBox;
+
+export type ICallback = {
+  [key: string]: Function;
+};
 
 export default SwiperModel;

@@ -2,15 +2,15 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-19 14:17:12
+ * @LastEditTime: 2023-10-10 16:10:07
  * @Description: ******
  */
 
-import type { IGestureEvent } from '../modules/gesture';
-import { Value } from '../modules/transition';
-import { revokeDamping, performDamping } from '../modules/damping';
+import type { IGestureEvent } from '@huangjs888/gesture';
+import { Value } from '@huangjs888/transition';
+import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { between } from '../utils';
-import type { SwiperModel, ItemModel, ICallback, IOpenStyle, IBBox } from '../core';
+import type { SwiperModel, ItemModel, ICallback, IOpenStyle, ISPBox } from '../core';
 
 const minScale = 0.3; // swipeClose下拉最小缩放比例
 const minOpacity = 0.01; // swipeClose下拉最小透明度
@@ -160,16 +160,16 @@ export default function pointerMove(
     return;
   }
   if (this._moveTarget === 'closures') {
-    openStyleChange?.((prevStyle: IOpenStyle, viewBox: IBBox) => {
-      const { width = 0, height = 0, left = 0, top = 0 } = viewBox;
+    openStyleChange?.((prevStyle: IOpenStyle, vspBox: ISPBox) => {
+      const { w = 0, h = 0, x: sx = 0, y: sy = 0 } = vspBox;
       const k = Math.min(
-        Math.max(1 - ((this.isVertical() ? moveX / width : moveY / height) || 0), minScale),
+        Math.max(1 - ((this.isVertical() ? moveX / w : moveY / h) || 0), minScale),
         1,
       );
       const o = minOpacity + ((k - minScale) * (1 - minOpacity)) / (1 - minScale);
       const { k: _k = 1, x: _x = 0, y: _y = 0 } = prevStyle;
-      const x = _x + deltaX + (point[0] - (_x + left + width / 2)) * (1 - k / _k);
-      const y = _y + deltaY + (point[1] - (_y + top + height / 2)) * (1 - k / _k);
+      const x = _x + deltaX + (point[0] - (_x + sx)) * (1 - k / _k);
+      const y = _y + deltaY + (point[1] - (_y + sy)) * (1 - k / _k);
       return { o, k, x, y };
     });
     return;

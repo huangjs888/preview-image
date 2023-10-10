@@ -1,14 +1,18 @@
 import React from 'react';
-import Gallery, { type IGalleryProps } from './gallery';
-import Image, { type IImageProps } from './image';
-import Portal, { type IPortalProps, type IContainer } from './portal';
-import type { IBBox } from '../core';
-export { Gallery, Image, Portal, IGalleryProps, IImageProps, IPortalProps, IContainer };
-export default function PreviewImage({ open, urls, current, onClose, showMenu, originBox, }: {
+import Gallery from './gallery';
+import Image from './image';
+import Portal from './portal';
+import type { ISPBox } from '../core';
+export * from '../core';
+export * from './gallery';
+export * from './image';
+export * from './portal';
+export { Gallery, Image, Portal };
+export default function PreviewImage({ open, urls, current, onClose, showMenu, thumbnail, }: {
     open?: boolean;
     onClose?: () => void;
     urls?: string[];
     current?: string;
     showMenu?: () => void;
-    originBox?: IBBox;
+    thumbnail?: ISPBox;
 }): React.JSX.Element;

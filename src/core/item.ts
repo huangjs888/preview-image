@@ -2,19 +2,19 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-26 10:37:28
+ * @LastEditTime: 2023-10-10 16:02:45
  * @Description: ******
  */
 
 import Transition, {
   Value,
-  easeOutQuad,
   type ITransitionOptions,
   type IAnimationExtendOptions,
-} from '../modules/transition';
-import Transform from '../modules/transform';
-import { revokeDamping, performDamping } from '../modules/damping';
-import { type IElement } from '../modules/lightdom';
+} from '@huangjs888/transition';
+import { easeOutQuad } from '@huangjs888/transition/easing';
+import Transform from '@huangjs888/transform';
+import { revokeDamping, performDamping } from '@huangjs888/damping';
+import { type IElement } from '@huangjs888/lightdom';
 import { defaultAnimationExtendOptions } from './defaultAnimationExtendOptions';
 import { between, isBetween, effectuate, ratioOffset } from '../utils';
 
@@ -540,6 +540,7 @@ class ItemModel extends Transition {
 }
 
 export type IDamping = 'rotate' | 'scale' | 'translate';
+
 export type ISizePosition = {
   containerCenter: number[];
   containerWidth: number;
@@ -547,6 +548,7 @@ export type ISizePosition = {
   naturalWidth: number;
   naturalHeight: number;
 };
+
 export type IItemModelOption = {
   sizePosition?: ISizePosition; // 容器尺寸和元素实际尺寸
   dblAdjust?: boolean; // 双击中心点是否调整

@@ -40,8 +40,7 @@
     }
   },
   "scripts": {
-    "start": "npm run build:prod",
-    "dev": "npm start && cd ./example && npm start",
+    "start": "npm run publish && npm link && npm link ./example/node_modules/react && cd ./example && npm link @huangjs888/preview-image && npm run docs && npm run dev",
     "publish": "npm run build:prod",
     "build:dev": "npm run clean && npm run lint && npm run build:types && npm run build:esm && npm run build:cjs && npm run build:umd",
     "build:babel": "npm run clean && npm run lint && npm run build:types && npm run build:cjs:babel && npm run build:esm:babel && npm run build:umd",
@@ -158,6 +157,12 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@babel/runtime-corejs3": "^7.22.10"
+    "@babel/runtime-corejs3": "^7.22.10",
+    "@huangjs888/damping": "^2.2.1",
+    "@huangjs888/gesture": "^3.0.1",
+    "@huangjs888/lightdom": "^2.1.3",
+    "@huangjs888/load-image": "^1.2.1",
+    "@huangjs888/transform": "^1.2.1",
+    "@huangjs888/transition": "^2.0.1"
   }
 }

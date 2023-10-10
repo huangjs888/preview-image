@@ -72,9 +72,10 @@ const config = {
     // babelHelpers=runtime表示babel配置文件里要使用@babel/plugin-transform-runtime
     babel({
       babelHelpers: MOD_ENV === 'esm' ? 'bundled' : 'runtime',
-      include: 'src/**/*',
+      // 这里在没有使用esm的时候，需要将node_modules/@huangjs888下的所有模块也进行babel转换
+      // 因为源码内引入的包的时候，包使用的是esm格式，所以需要将其一起转换
+      include: ['src/**/*', MOD_ENV === 'esm' ? '' : '**/node_modules/@huangjs888/**'],
       exclude: MOD_ENV === 'esm' ? '**/node_modules/**' : undefined,
-      // /node_modules/ : /node_modules(?!(\/|\\)(@huangjs888(\/|\\)(.+)?))/,
       extensions,
     }),
     // 如果文件内有根据环境变量的判断，需要引入这个替换

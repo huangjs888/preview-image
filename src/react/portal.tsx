@@ -2,14 +2,14 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-20 17:03:40
+ * @LastEditTime: 2023-10-10 16:07:53
  * @Description: ******
  */
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { getScrollBarSize, isBodyOverflowing } from '@huangjs888/lightdom';
 import { canUseDOM, useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
-import { getScrollBarSize, isBodyOverflowing } from '../modules/lightdom';
 
 function getContainer(container?: IContainer) {
   if (container === false) {

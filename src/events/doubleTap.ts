@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 11:03:05
+ * @LastEditTime: 2023-10-10 16:09:31
  * @Description: ******
  */
 
-import type { IGestureEvent } from '../modules/gesture';
+import type { IGestureEvent } from '@huangjs888/gesture';
 import type { SwiperModel, ItemModel } from '../core';
 
 export default function doubleTap(this: SwiperModel<ItemModel | null>, event: IGestureEvent) {

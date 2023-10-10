@@ -2,17 +2,25 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-28 09:59:50
+ * @LastEditTime: 2023-10-10 16:09:01
  * @Description: ******
  */
 
 import React from 'react';
-import Gallery, { type IGalleryProps } from './gallery';
-import Image, { type IImageProps } from './image';
-import Portal, { type IPortalProps, type IContainer } from './portal';
-import type { IBBox } from '../core';
+import Gallery from './gallery';
+import Image from './image';
+import Portal from './portal';
+import type { ISPBox } from '../core';
 
-export { Gallery, Image, Portal, IGalleryProps, IImageProps, IPortalProps, IContainer };
+export * from '../core';
+
+export * from './gallery';
+
+export * from './image';
+
+export * from './portal';
+
+export { Gallery, Image, Portal };
 
 export default function PreviewImage({
   open = false,
@@ -20,14 +28,14 @@ export default function PreviewImage({
   current = '',
   onClose,
   showMenu,
-  originBox,
+  thumbnail,
 }: {
   open?: boolean;
   onClose?: () => void;
   urls?: string[];
   current?: string;
   showMenu?: () => void;
-  originBox?: IBBox;
+  thumbnail?: ISPBox;
 }) {
   const index = urls.indexOf(current);
   return (
@@ -39,7 +47,7 @@ export default function PreviewImage({
       destroyOnClose={true}
       onPopupMenu={showMenu}
       onClose={onClose}
-      originBox={originBox}
+      thumbnail={thumbnail}
     />
   );
 }

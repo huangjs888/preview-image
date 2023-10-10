@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scaleable=no" name="viewport"/><title>图片查看</title><link href="index.164a87e1.css" rel="stylesheet"></head><body><div style="z-index: 10000;
+        position: fixed;
+        width: 100%;
+        height: 20%;
+        top: 0;
+        border-bottom: 1px solid #fff;
+        overflow: auto;
+        text-align: center;
+        display: none;"><button id="clear">clear</button><div id="log"></div></div><div id="root"></div><script defer="defer" src="index.7ed8d64d.js"></script></body><script>const logDom = document.querySelector('#log');
+    document.querySelector('#clear').onclick = () => {
+      logDom.innerHTML = '';
+    };
+    setInterval(() => {
+      logDom.innerHTML = '';
+    }, 5000);
+    window.log = function log(...v) {
+      let innerHTML = '';
+      v.forEach((str) => {
+        innerHTML += `<span>${str}</span>&nbsp;`;
+      });
+      logDom.innerHTML += innerHTML + '<br/>';
+    };
+    window.error = function error(...v) {
+      let innerHTML = '';
+      v.forEach((str) => {
+        innerHTML += `<span style="color:red;">${str}</span>&nbsp;`;
+      });
+      logDom.innerHTML += innerHTML + '<br/>';
+    };
+    window.warn = function log(...v) {
+      let innerHTML = '';
+      v.forEach((str) => {
+        innerHTML += `<span style="color:yellow;">${str}</span>&nbsp;`;
+      });
+      logDom.innerHTML += innerHTML + '<br/>';
+    };
+    window.relog = function relog(...v) {
+      let innerHTML = '';
+      v.forEach((str) => {
+        innerHTML += `<span>${str}</span>&nbsp;`;
+      });
+      logDom.innerHTML = innerHTML;
+    };</script></html>

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-06-26 09:46:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-25 11:55:27
+ * @LastEditTime: 2023-10-08 10:02:22
  * @Description: ******
  */
 
@@ -32,4 +32,12 @@ export function isBetween(v: number, [min, max]: number[]) {
 // 若v在min和max之间，则返回v值，否则，返回边缘值min或max
 export function between(v: number, [min, max]: number[], _?: boolean) {
   return Math.max(Math.min(v, max), min);
+}
+
+export function getSPBox(element?: Element | null) {
+  if (element) {
+    const { left, top, width, height } = element.getBoundingClientRect();
+    return { x: left + width / 2, y: top + height / 2, w: width, h: height };
+  }
+  return { x: 0, y: 0, w: 0, h: 0 };
 }

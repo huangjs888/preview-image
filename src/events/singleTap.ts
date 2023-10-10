@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-18 17:21:23
+ * @LastEditTime: 2023-10-10 16:11:44
  * @Description: ******
  */
 
-import type { IGestureEvent } from '../modules/gesture';
+import type { IGestureEvent } from '@huangjs888/gesture';
 import type { SwiperModel, ItemModel, ICallback } from '../core';
 
 export default function singleTap(

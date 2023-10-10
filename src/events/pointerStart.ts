@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-15 17:11:45
+ * @LastEditTime: 2023-10-10 16:10:33
  * @Description: ******
  */
-import type { IGestureEvent } from '../modules/gesture';
-import { Value } from '../modules/transition';
+import type { IGestureEvent } from '@huangjs888/gesture';
+import { Value } from '@huangjs888/transition';
 import { between, isBetween } from '../utils';
 import type { SwiperModel, ItemModel, ICallback } from '../core';
 
