@@ -3,9 +3,9 @@ type IElement = Element | DocumentFragment | null;
 export type IContainer = false | string | IElement | (() => IElement);
 export type IPortalProps = {
     container?: IContainer;
-    lockOverflow?: boolean;
+    prevent?: boolean;
     destroy?: boolean;
     children?: React.ReactNode;
 };
-declare const _default: ({ container, destroy, lockOverflow, children }: IPortalProps) => React.JSX.Element | null;
+declare const _default: ({ container, destroy, prevent, children }: IPortalProps) => React.JSX.Element | null;
 export default _default;

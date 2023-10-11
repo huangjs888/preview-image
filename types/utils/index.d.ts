@@ -9,3 +9,4 @@ export declare function getSPBox(element?: Element | null): {
     w: number;
     h: number;
 };
+export declare function preventDefault(e: Event): void;

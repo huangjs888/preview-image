@@ -2,14 +2,14 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:07:53
+ * @LastEditTime: 2023-10-11 14:51:33
  * @Description: ******
  */
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { getScrollBarSize, isBodyOverflowing } from '@huangjs888/lightdom';
 import { canUseDOM, useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
+import { preventDefault } from '../utils';
 
 function getContainer(container?: IContainer) {
   if (container === false) {
@@ -34,12 +34,12 @@ export type IContainer = false | string | IElement | (() => IElement);
 
 export type IPortalProps = {
   container?: IContainer;
-  lockOverflow?: boolean;
+  prevent?: boolean;
   destroy?: boolean;
   children?: React.ReactNode;
 };
 
-export default ({ container, destroy, lockOverflow, children }: IPortalProps) => {
+export default ({ container, destroy, prevent, children }: IPortalProps) => {
   const [specifyEle, setSpecifyEle] = React.useState<IElement | null | false>(() =>
     getContainer(container),
   );
@@ -65,49 +65,75 @@ export default ({ container, destroy, lockOverflow, children }: IPortalProps) =>
   }, [defalutEle, defaultEleRender]);
 
   const finalEle = specifyEle ?? defalutEle;
-  const lock =
-    lockOverflow && canUseDOM() && (finalEle === defalutEle || finalEle === document.body);
-  const overflowRef = React.useRef<string>('');
+  const innerPrevent =
+    prevent && canUseDOM() && (finalEle === defalutEle || finalEle === document.body);
+  // const overflowRef = React.useRef<string>('');
   useIsomorphicLayoutEffect(() => {
-    const body = document.body;
-    const html = body.parentElement;
-    if (lock) {
-      const isOverflow = isBodyOverflowing();
-      const scrollbarSize = getScrollBarSize(body).width;
-      const width = isOverflow ? `calc(100% - ${scrollbarSize}px)` : '';
-      const overflow = [];
+    // Chrome 73之后，所有绑定在根节点（window,document,body）的scroll,wheel,mobile touch事件都会默认passive为true
+    // 这就会导致事件内调用e.preventDefault()无效，还会报错：Unable to preventDefault inside passive event listener invocation.
+    // 这里设置为false，并注册事件达到关闭浏览器的右键菜单，选择，滚动，缩放等默认行为
+    // 阻止滚动行为，也可以统一在html和body标签上加入overflow：hidden
+    // const body = document.body;
+    // const html = body.parentElement;
+    if (innerPrevent) {
+      // 阻止web端右键菜单行为
+      window.addEventListener('contextmenu', preventDefault, { capture: false, passive: false });
+      // 阻止移动端长按菜单，滚动，缩放，选择等行为
+      window.addEventListener('touchstart', preventDefault, { capture: false, passive: false });
+      // 阻止web端滚动行为
+      window.addEventListener('wheel', preventDefault, { capture: false, passive: false });
+      // 阻止web端选择行为
+      window.addEventListener('dragstart', preventDefault, {
+        capture: false,
+        passive: false,
+      });
+      // 阻止web端选择行为
+      if ('onselectstart' in window.document.documentElement) {
+        // capture为true使其为捕获阶段就执行
+        window.addEventListener('selectstart', preventDefault, {
+          capture: false,
+          passive: false,
+        });
+      }
+      /* const overflow = [];
       overflow[0] = body.style.overflow;
       body.style.overflow = 'hidden';
-      overflow[1] = body.style.width;
-      body.style.width = width;
       if (html) {
-        overflow[2] = html.style.overflow;
+        overflow[1] = html.style.overflow;
         html.style.overflow = 'hidden';
-        overflow[3] = html.style.width;
-        html.style.width = width;
       }
-      overflowRef.current = overflow.join('-');
+      overflowRef.current = overflow.join('-'); */
     } else {
-      const overflow = overflowRef.current.split('-');
+      window.removeEventListener('contextmenu', preventDefault);
+      window.removeEventListener('touchstart', preventDefault);
+      window.removeEventListener('wheel', preventDefault);
+      window.removeEventListener('dragstart', preventDefault);
+      if ('onselectstart' in window.document.documentElement) {
+        window.removeEventListener('selectstart', preventDefault);
+      }
+      /* const overflow = overflowRef.current.split('-');
       overflowRef.current = '';
       body.style.overflow = overflow[0];
-      body.style.width = overflow[1];
       if (html) {
-        html.style.overflow = overflow[2];
-        html.style.width = overflow[3];
-      }
+        html.style.overflow = overflow[1];
+      } */
     }
     return () => {
-      const overflow = overflowRef.current.split('-');
+      window.removeEventListener('contextmenu', preventDefault);
+      window.removeEventListener('touchstart', preventDefault);
+      window.removeEventListener('wheel', preventDefault);
+      window.removeEventListener('dragstart', preventDefault);
+      if ('onselectstart' in window.document.documentElement) {
+        window.removeEventListener('selectstart', preventDefault);
+      }
+      /* const overflow = overflowRef.current.split('-');
       overflowRef.current = '';
       body.style.overflow = overflow[0];
-      body.style.width = overflow[1];
       if (html) {
-        html.style.overflow = overflow[2];
-        html.style.width = overflow[3];
-      }
+        html.style.overflow = overflow[1];
+      } */
     };
-  }, [lock]);
+  }, [innerPrevent]);
 
   if (destroy || !canUseDOM() || finalEle === null) {
     return null;

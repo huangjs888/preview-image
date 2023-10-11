@@ -1101,10 +1101,10 @@
   dependencies:
     "@babel/runtime-corejs3" "^7.22.10"
 
-"@huangjs888/gesture@^3.0.1":
-  "integrity" "sha512-WhrVgJLwnfwijXco1/ReTDNawRe9hRu+fhc6wuWptTQk6SB3nPx9ESsOHL9QBJ/hUB3I6Ec2X9BTHwiczoLZ0w=="
-  "resolved" "https://registry.npmjs.org/@huangjs888/gesture/-/gesture-3.0.1.tgz"
-  "version" "3.0.1"
+"@huangjs888/gesture@^3.1.0":
+  "integrity" "sha512-VFlabLAfmfKMZRsxVI/6wlQe+Pn0sLosqa3uhGfRZXXiV79IDOWIbZnr9DkEW9fjGtHQkVh7zgBBbwJvoiRBeA=="
+  "resolved" "https://registry.npmjs.org/@huangjs888/gesture/-/gesture-3.1.0.tgz"
+  "version" "3.1.0"
   dependencies:
     "@babel/runtime-corejs3" "^7.22.10"
     "@huangjs888/lightdom" "^2.1.3"

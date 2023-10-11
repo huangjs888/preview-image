@@ -11,7 +11,6 @@ declare class Gallery extends SwiperModel<Image> {
     _openStyle: IEOpenStyle | null;
     _ospBox: ISPBox | null;
     _vspBox: ISPBox | null;
-    _overflow: string;
     _destoryOnClose: boolean;
     _itemGap: number;
     _unbind: (() => void) | null;
@@ -28,7 +27,7 @@ declare class Gallery extends SwiperModel<Image> {
     destory(): void;
     private animateOpen;
     private openStyle;
-    private lockOverflow;
+    private preventDefault;
     open(): void;
     close(): void;
 }

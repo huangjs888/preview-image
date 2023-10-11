@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-06-26 09:46:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-08 10:02:22
+ * @LastEditTime: 2023-10-11 14:31:36
  * @Description: ******
  */
 
@@ -40,4 +40,8 @@ export function getSPBox(element?: Element | null) {
     return { x: left + width / 2, y: top + height / 2, w: width, h: height };
   }
   return { x: 0, y: 0, w: 0, h: 0 };
+}
+
+export function preventDefault(e: Event) {
+  return e.preventDefault();
 }

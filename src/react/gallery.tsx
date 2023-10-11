@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 11:47:02
+ * @LastEditTime: 2023-10-11 14:47:38
  * @Description: ******
  */
 
@@ -239,16 +239,10 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     }, [direction, itemGap, vspBox]);
 
     useIsomorphicLayoutEffect(() => {
-      const contextmenu = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
       const resize = () => setVSPBox(getSPBox(gestureRef.current?.findDOMElement()));
       window.addEventListener('resize', resize);
-      window.addEventListener('contextmenu', contextmenu);
       return () => {
         window.removeEventListener('resize', resize);
-        window.removeEventListener('contextmenu', contextmenu);
       };
     }, []);
 
@@ -347,7 +341,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     }
 
     return (
-      <Portal lockOverflow={open && openStatus === 2} container={container}>
+      <Portal prevent={open && openStatus === 2} container={container}>
         <Gesture
           ref={gestureRef}
           onPointerStart={(e) => bind(pointerStart, e)}
