@@ -6,7 +6,7 @@
  * @Description: ******
  */
 
-import Gesture, { type IGestureEvent } from '@huangjs888/gesture';
+import { Gesture, type IGestureEvent } from '@huangjs888/gesture';
 import {
   type ICSSStyle,
   type IElement,

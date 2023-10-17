@@ -2,13 +2,13 @@
  * @Author: Huangjs
  * @Date: 2023-08-30 11:09:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-11 15:17:31
+ * @LastEditTime: 2023-10-16 15:39:39
  * @Description: ******
  */
 
 import React from 'react';
-import previewImage from '@huangjs888/preview-image';
-import PreviewImage from '@huangjs888/preview-image/react';
+import { previewImage } from '@huangjs888/preview-image';
+import { PreviewImage } from '@huangjs888/preview-image/react';
 import ko from './statics/ko.jpg';
 import ok from './statics/ok.jpg';
 import '@huangjs888/preview-image/css';

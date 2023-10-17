@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:09:01
+ * @LastEditTime: 2023-10-16 15:37:10
  * @Description: ******
  */
 
@@ -22,7 +22,7 @@ export * from './portal';
 
 export { Gallery, Image, Portal };
 
-export default function PreviewImage({
+export const PreviewImage = function PreviewImage({
   open = false,
   urls = [],
   current = '',
@@ -50,4 +50,4 @@ export default function PreviewImage({
       thumbnail={thumbnail}
     />
   );
-}
+};

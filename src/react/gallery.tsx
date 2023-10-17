@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import Gesture, { type IGestureEvent } from '@huangjs888/gesture/react';
+import { Gesture, type IGestureEvent } from '@huangjs888/gesture/react';
 import Image from './image';
 import Portal, { type IContainer } from './portal';
 import { useStableMemo } from './useStableMemo';

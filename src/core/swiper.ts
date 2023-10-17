@@ -6,7 +6,8 @@
  * @Description: ******
  */
 
-import Transition, {
+import {
+  Transition,
   Value,
   type ITransitionOptions,
   type IAnimationExtendOptions,

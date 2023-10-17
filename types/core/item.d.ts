@@ -1,5 +1,5 @@
-import Transition, { type ITransitionOptions, type IAnimationExtendOptions } from '@huangjs888/transition';
-import Transform from '@huangjs888/transform';
+import { Transition, type ITransitionOptions, type IAnimationExtendOptions } from '@huangjs888/transition';
+import { Transform } from '@huangjs888/transform';
 import { type IElement } from '@huangjs888/lightdom';
 declare class ItemModel extends Transition {
     _dblAdjust: boolean;

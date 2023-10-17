@@ -6,13 +6,14 @@
  * @Description: ******
  */
 
-import Transition, {
+import {
+  Transition,
   Value,
   type ITransitionOptions,
   type IAnimationExtendOptions,
 } from '@huangjs888/transition';
 import { easeOutQuad } from '@huangjs888/transition/easing';
-import Transform from '@huangjs888/transform';
+import { Transform } from '@huangjs888/transform';
 import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { type IElement } from '@huangjs888/lightdom';
 import { defaultAnimationExtendOptions } from './defaultAnimationExtendOptions';

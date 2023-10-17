@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-08-09 11:24:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-27 17:37:34
+ * @LastEditTime: 2023-10-16 15:32:06
  * @Description: ******
  */
 
@@ -27,6 +27,7 @@ const config = {
     {
       format: MOD_ENV,
       sourcemap: true,
+      exports: 'named',
     },
   ],
   // nodeResolve是将node_modules里的依赖打包进来，这里可以选择一些依赖包，不打包进来，源码中只会保留导入语句
@@ -108,7 +109,7 @@ export default [
         ...config.output[0],
         file: `${pathname}/preview-image${NODE_ENV === 'production' ? '.min' : ''}.js`,
         // umd时挂在全局变量下的模块名称
-        name: MOD_ENV === 'umd' ? 'PreviewImage' : undefined,
+        name: MOD_ENV === 'umd' ? 'RawPreviewImage' : undefined,
       },
     ],
     plugins: [

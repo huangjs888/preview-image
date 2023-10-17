@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:06:10
+ * @LastEditTime: 2023-10-16 15:37:39
  * @Description: ******
  */
 
@@ -18,7 +18,7 @@ export * from './image';
 
 export { Gallery, Image };
 
-export default function previewImage({
+export const previewImage = function previewImage({
   urls = [],
   current = '',
   showMenu,
@@ -42,4 +42,4 @@ export default function previewImage({
     },
   });
   gallery.open();
-}
+};

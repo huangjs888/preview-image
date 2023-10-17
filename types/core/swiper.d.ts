@@ -1,4 +1,4 @@
-import Transition, { type ITransitionOptions, type IAnimationExtendOptions } from '@huangjs888/transition';
+import { Transition, type ITransitionOptions, type IAnimationExtendOptions } from '@huangjs888/transition';
 import { type IElement } from '@huangjs888/lightdom';
 declare class SwiperModel<T extends Object | null> extends Transition {
     _direction: IDirection;

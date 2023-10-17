@@ -8,11 +8,11 @@ export * from './gallery';
 export * from './image';
 export * from './portal';
 export { Gallery, Image, Portal };
-export default function PreviewImage({ open, urls, current, onClose, showMenu, thumbnail, }: {
-    open?: boolean;
-    onClose?: () => void;
-    urls?: string[];
-    current?: string;
-    showMenu?: () => void;
-    thumbnail?: ISPBox;
-}): React.JSX.Element;
+export declare const PreviewImage: ({ open, urls, current, onClose, showMenu, thumbnail, }: {
+    open?: boolean | undefined;
+    onClose?: (() => void) | undefined;
+    urls?: string[] | undefined;
+    current?: string | undefined;
+    showMenu?: (() => void) | undefined;
+    thumbnail?: ISPBox | undefined;
+}) => React.JSX.Element;

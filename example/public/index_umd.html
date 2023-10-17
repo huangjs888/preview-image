@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-11 15:31:09
+ * @LastEditTime: 2023-10-16 15:39:19
  * @Description: ******
 -->
 <!doctype html>
@@ -87,7 +87,7 @@
               w: 0,
               h: 0,
             }; */
-            window.PreviewImage.default({
+            window.RawPreviewImage.previewImage({
               current,
               urls: imgUrls,
               showMenu: () => {
@@ -99,7 +99,7 @@
         });
         const gDom = document.querySelector('#gallery');
         const tDom = document.querySelector('#transform');
-        const gallery = new window.PreviewImage.Gallery({
+        const gallery = new window.RawPreviewImage.Gallery({
           container: gDom,
           imageUrls: imgUrls,
           current: 1,

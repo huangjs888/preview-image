@@ -2,12 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 17:31:45
+ * @LastEditTime: 2023-10-16 15:35:07
  * @Description: ******
  */
 
 import { isTouchable } from '@huangjs888/gesture';
-import loadImage from '@huangjs888/load-image';
+import { loadImage } from '@huangjs888/load-image';
 import { type ICSSStyle, type IElement, getElement, createElement } from '@huangjs888/lightdom';
 import { ItemModel, type ISPBox } from '../core';
 import loadingIcon from '../svg/loading.svg';
