@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-06-26 09:46:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-11 14:31:36
+ * @LastEditTime: 2023-10-18 11:03:06
  * @Description: ******
  */
 
@@ -44,4 +44,17 @@ export function getSPBox(element?: Element | null) {
 
 export function preventDefault(e: Event) {
   return e.preventDefault();
+}
+
+export function debounce(func: () => void, wait = 0) {
+  // 缓存一个定时器id
+  let timer: number = 0;
+  return (...args: any) => {
+    // 频繁每次调用，则清空定时器，忽略实际函数，然后开启新的计时器
+    if (timer) clearTimeout(timer);
+    // wait时间内没有再调用，则执行实际函数
+    timer = +setTimeout(() => {
+      func.apply(null, args);
+    }, wait);
+  };
 }

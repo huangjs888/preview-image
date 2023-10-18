@@ -32,7 +32,7 @@ import {
   scale,
   swipe,
 } from '../events';
-import { getSPBox } from '../utils';
+import { getSPBox, debounce } from '../utils';
 import '../style/gallery.less';
 
 type IGalleryRef = {
@@ -239,7 +239,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     }, [direction, itemGap, vspBox]);
 
     useIsomorphicLayoutEffect(() => {
-      const resize = () => setVSPBox(getSPBox(gestureRef.current?.findDOMElement()));
+      const resize = debounce(() => setVSPBox(getSPBox(gestureRef.current?.findDOMElement())), 50);
       window.addEventListener('resize', resize);
       return () => {
         window.removeEventListener('resize', resize);

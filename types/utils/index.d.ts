@@ -10,3 +10,4 @@ export declare function getSPBox(element?: Element | null): {
     h: number;
 };
 export declare function preventDefault(e: Event): void;
+export declare function debounce(func: () => void, wait?: number): (...args: any) => void;

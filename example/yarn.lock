@@ -1021,7 +1021,7 @@
 
 "@huangjs888/preview-image@file:..":
   "resolved" "file:.."
-  "version" "2.0.2"
+  "version" "2.0.3"
   dependencies:
     "@babel/runtime-corejs3" "^7.22.10"
     "@huangjs888/damping" "^2.2.1"

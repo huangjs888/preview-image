@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-11 14:45:22
+ * @LastEditTime: 2023-10-18 11:33:11
  * @Description: ******
  */
 
@@ -36,7 +36,7 @@ import {
   scale,
   swipe,
 } from '../events';
-import { getSPBox, preventDefault } from '../utils';
+import { getSPBox, preventDefault, debounce } from '../utils';
 import '../style/gallery.less';
 
 class Gallery extends SwiperModel<Image> {
@@ -222,7 +222,7 @@ class Gallery extends SwiperModel<Image> {
       }
     };
     _backdrop.addEventListener('transitionend', transitionend, { capture: false, passive: false });
-    const resize = () => this.updateVSPBox();
+    const resize = debounce(() => this.updateVSPBox(), 50);
     window.addEventListener('resize', resize, { capture: false, passive: false });
     this._unbind = () => {
       gesture.destory();
