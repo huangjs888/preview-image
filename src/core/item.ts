@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:02:45
+ * @LastEditTime: 2023-10-20 14:47:29
  * @Description: ******
  */
 
@@ -21,11 +21,11 @@ import { between, isBetween, effectuate, ratioOffset } from '../utils';
 
 class ItemModel extends Transition {
   _dblAdjust: boolean = true;
-  _dblScale: number | (() => number) = 0; // 双击放大比例和是否调整放大时的中心点
+  _dblScale: IDouble = 0; // 双击放大比例和是否调整放大时的中心点
   _damping: IDamping[] = []; // 可以进行阻尼的变换
-  _rotation: number[] | (() => number[]) = []; // 旋转范围
-  _scalation: number[] | (() => number[]) = []; // 缩放范围
-  _translation: (number[] | ((v: number) => number[]))[] = []; // 平移范围
+  _rotation: IRange = []; // 旋转范围
+  _scalation: IRange = []; // 缩放范围
+  _translation: IRange[] = []; // 平移范围
   _sizePosition: ISizePosition & {
     elementWidth: number;
     elementHeight: number;
@@ -106,97 +106,92 @@ class ItemModel extends Transition {
     }
     return this._sizePosition;
   }
-  setRotation(a?: number[]) {
+  setRotation(a?: IRange) {
+    this._rotation = a;
+  }
+  getRotation(...args: any) {
+    const a = effectuate(this._rotation, ...args);
     if (a && typeof a[0] === 'number' && typeof a[1] === 'number' && a[1] >= a[0]) {
       // 最大范围 -Infinity 到 + Infinity
-      this._rotation = a;
-      return;
+      return a;
+    } else {
+      // 默认值：测微信得到的结论，是不给旋转的
+      return [0, 0];
     }
-    // 测微信得到的结论，是不给旋转的
-    // 如果设置不合理，则取默认
-    this._rotation = () => [0, 0];
   }
-  getRotation() {
-    return effectuate(this._rotation);
+  setScalation(k?: IRange) {
+    this._scalation = k;
   }
-  setScalation(k?: number[]) {
+  getScalation(...args: any) {
+    const k = effectuate(this._scalation, ...args);
     if (k && typeof k[0] === 'number' && typeof k[1] === 'number' && k[1] >= k[0] && k[0] > 0) {
-      this._scalation = k; // 最大范围 0 到 +Infinity (不等于0)
-      return;
+      return k; // 最大范围 0 到 +Infinity (不等于0)
     }
-    // 测微信得到的结论，最小值为1，最大值永远是双击值放大值的2倍
-    // 如果设置不合理，则取默认
-    this._scalation = () => [1, 2 * this.getDblScale()];
+    // 默认值：测微信得到的结论，最小值为1，最大值永远是双击值放大值的2倍
+    return [1, 2 * this.getDblScale()];
   }
-  getScalation() {
-    return effectuate(this._scalation);
-  }
-  setTranslation(xy?: number[][]) {
+  setTranslation(xy?: IRange[]) {
     this.setXTranslation(xy && xy[0]);
     this.setYTranslation(xy && xy[1]);
   }
-  getTranslation(k?: number) {
-    return [this.getXTranslation(k), this.getYTranslation()];
+  getTranslation(k?: number, ...args: any) {
+    return [this.getXTranslation(k, ...args), this.getYTranslation(k, ...args)];
   }
-  setXTranslation(x?: number[]) {
+  setXTranslation(x?: IRange) {
+    this._translation[0] = x;
+  }
+  getXTranslation(k?: number, ...args: any) {
+    const x = effectuate(this._translation[0], ...args);
     if (x && typeof x[0] === 'number' && typeof x[1] === 'number' && x[1] >= x[0]) {
-      this._translation[0] = x; // 最大范围 -Infinity 到 + Infinity
-      return;
+      return x; // 最大范围 -Infinity 到 + Infinity
     }
-    // 测微信得到的结论，边界范围是元素按照当前比例缩放后宽度和容器宽度之差，左右各一半的范围
-    this._translation[0] = (k: number) => {
-      const { containerWidth, elementWidth } = this.sizePosition();
-      const bx = Math.max((elementWidth * k - containerWidth) / 2, 0);
-      return [-bx, bx];
-    };
+    const _k = k || this.value().transform.k || 1;
+    // 默认值：测微信得到的结论，边界范围是元素按照当前比例缩放后宽度和容器宽度之差，左右各一半的范围
+    const { containerWidth, elementWidth } = this.sizePosition();
+    const bx = Math.max((elementWidth * _k - containerWidth) / 2, 0);
+    return [-bx, bx];
   }
-  getXTranslation(k?: number) {
-    return effectuate(this._translation[0], k || this.value().transform.k || 1);
+  setYTranslation(y?: IRange) {
+    this._translation[1] = y;
   }
-  setYTranslation(y?: number[]) {
+  getYTranslation(k?: number, ...args: any) {
+    const y = effectuate(this._translation[1], ...args);
     if (y && typeof y[0] === 'number' && typeof y[1] === 'number' && y[1] >= y[0]) {
-      this._translation[1] = y; // 最大范围 -Infinity 到 +Infinity
-      return;
+      return y; // 最大范围 -Infinity 到 + Infinity
     }
-    // 测微信得到的结论，边界范围是元素按照当前比例缩放后高度和容器高度之差，上下各一半的范围
-    this._translation[1] = (k: number) => {
-      const { containerHeight, elementHeight } = this.sizePosition();
-      const by = Math.max((elementHeight * k - containerHeight) / 2, 0);
-      return [-by, by];
-    };
+    const _k = k || this.value().transform.k || 1;
+    // 默认值：测微信得到的结论，边界范围是元素按照当前比例缩放后宽度和容器宽度之差，左右各一半的范围
+    const { containerHeight, elementHeight } = this.sizePosition();
+    const by = Math.max((elementHeight * _k - containerHeight) / 2, 0);
+    return [-by, by];
   }
-  getYTranslation(k?: number) {
-    return effectuate(this._translation[1], k || this.value().transform.k || 1);
+  setDblScale(k?: IDouble) {
+    this._dblScale = k;
   }
-  setDblScale(k?: number) {
+  getDblScale(...args: any) {
+    const k = effectuate(this._dblScale, ...args);
     if (typeof k === 'number' && k > 0) {
-      this._dblScale = k;
-      return;
+      return k;
     }
     // 测微信得到的结论，双击放大比例是
     // 1，容器宽/元素宽 和 容器高/元素高 的最大值
     // 2，元素实际宽/容器宽 和 元素实际高/容器高 的最小值
     // 3，在1、2两个值和数值2这三个之中的最大值
-    this._dblScale = () => {
-      const {
-        containerWidth,
-        containerHeight,
-        naturalWidth,
-        naturalHeight,
-        elementWidth,
-        elementHeight,
-      } = this.sizePosition();
-      return (
-        Math.max(
-          2,
-          Math.max(containerWidth / elementWidth, containerHeight / elementHeight),
-          Math.min(naturalWidth / containerWidth, naturalHeight / containerHeight),
-        ) || 1
-      );
-    };
-  }
-  getDblScale() {
-    return effectuate(this._dblScale);
+    const {
+      containerWidth,
+      containerHeight,
+      naturalWidth,
+      naturalHeight,
+      elementWidth,
+      elementHeight,
+    } = this.sizePosition();
+    return (
+      Math.max(
+        2,
+        Math.max(containerWidth / elementWidth, containerHeight / elementHeight),
+        Math.min(naturalWidth / containerWidth, naturalHeight / containerHeight),
+      ) || 1
+    );
   }
   setDblAdjust(aj: boolean = true) {
     this._dblAdjust = aj;
@@ -260,7 +255,9 @@ class ItemModel extends Transition {
   transform(
     transform: Transform,
     point?: number[] | IAnimationExtendOptions,
-    options?: IAnimationExtendOptions,
+    options?: IAnimationExtendOptions & {
+      touching?: boolean;
+    },
   ) {
     const t = this.value().transform;
     let { a, k, x, y } = transform;
@@ -280,8 +277,14 @@ class ItemModel extends Transition {
   }
   transformTo(
     transform: Transform,
-    point?: number[] | IAnimationExtendOptions,
-    options?: IAnimationExtendOptions,
+    point?:
+      | number[]
+      | (IAnimationExtendOptions & {
+          touching?: boolean;
+        }),
+    options?: IAnimationExtendOptions & {
+      touching?: boolean;
+    },
   ) {
     let _point = point;
     let _options = options;
@@ -289,37 +292,44 @@ class ItemModel extends Transition {
       _options = point;
       _point = undefined;
     }
+    const { touching, ...restOptions } = _options || {};
     const { a: _a, k: _k, x: _x, y: _y } = transform;
     const _transform = new Transform();
     if (typeof _a === 'number') {
-      _transform.a = between(_a, this.getRotation());
+      _transform.a = between(_a, this.getRotation(touching));
     }
     if (typeof _k === 'number') {
-      const k = (_transform.k = between(_k, this.getScalation()));
+      const k = (_transform.k = between(_k, this.getScalation(touching)));
       if (Array.isArray(_point)) {
         const [ox, oy] = this.computeOffset(_point, k);
         const t = this.value().transform;
-        _transform.x = between((typeof _x === 'number' ? _x : t.x) + ox, this.getXTranslation(k));
-        _transform.y = between((typeof _y === 'number' ? _y : t.y) + oy, this.getYTranslation(k));
+        _transform.x = between(
+          (typeof _x === 'number' ? _x : t.x) + ox,
+          this.getXTranslation(k, touching),
+        );
+        _transform.y = between(
+          (typeof _y === 'number' ? _y : t.y) + oy,
+          this.getYTranslation(k, touching),
+        );
       } else {
         if (typeof _x === 'number') {
-          _transform.x = between(_x, this.getXTranslation(k));
+          _transform.x = between(_x, this.getXTranslation(k, touching));
         }
         if (typeof _y === 'number') {
-          _transform.y = between(_y, this.getYTranslation(k));
+          _transform.y = between(_y, this.getYTranslation(k, touching));
         }
       }
     } else {
       if (typeof _x === 'number') {
-        _transform.x = between(_x, this.getXTranslation());
+        _transform.x = between(_x, this.getXTranslation(0, touching));
       }
       if (typeof _y === 'number') {
-        _transform.y = between(_y, this.getYTranslation());
+        _transform.y = between(_y, this.getYTranslation(0, touching));
       }
     }
     return this.apply(new Value(_transform.toRaw()), {
       ...defaultAnimationExtendOptions,
-      ..._options,
+      ...restOptions,
     });
   }
   computeOffset(point: number[], k: number, adjust: boolean = false) {
@@ -354,9 +364,16 @@ class ItemModel extends Transition {
     oy *= 1 - dk;
     return [ox, oy];
   }
-  moveBounce(angle: number, scale: number, deltaX: number, deltaY: number, point: number[] = []) {
+  moveBounce(
+    touching: boolean,
+    angle: number,
+    scale: number,
+    deltaX: number,
+    deltaY: number,
+    point: number[] = [],
+  ) {
     let { a, k, x, y } = this.value().transform;
-    const aRange = this.getRotation();
+    const aRange = this.getRotation(touching);
     if (this.isDamping('rotate')) {
       // 先把当前值反算出阻尼之前的原值
       let ba = between(a, aRange);
@@ -367,7 +384,7 @@ class ItemModel extends Transition {
     } else {
       a = between((a += angle), aRange);
     }
-    const kRange = this.getScalation();
+    const kRange = this.getScalation(touching);
     if (this.isDamping('scale')) {
       // 先把当前值反算出阻尼之前的原值
       let bk = between(k, kRange);
@@ -382,53 +399,53 @@ class ItemModel extends Transition {
     if (this.isDamping('scale')) {
       const { containerWidth: xMax, containerHeight: yMax } = this.sizePosition();
       // 先把当前值反算出阻尼之前的原值
-      let bx = between(x, this.getXTranslation());
+      let bx = between(x, this.getXTranslation(0, touching));
       x = bx + revokeDamping(x - bx, { max: xMax });
       // 再对总值进行总体阻尼计算
-      bx = between((x += ox + deltaX), this.getXTranslation(k));
+      bx = between((x += ox + deltaX), this.getXTranslation(k, touching));
       x = bx + performDamping(x - bx, { max: xMax });
       // 先把当前值反算出阻尼之前的原值
-      let by = between(y, this.getYTranslation());
+      let by = between(y, this.getYTranslation(0, touching));
       y = by + revokeDamping(y - by, { max: yMax });
       // 再对总值进行总体阻尼计算
-      by = between((y += oy + deltaY), this.getYTranslation(k));
+      by = between((y += oy + deltaY), this.getYTranslation(k, touching));
       y = by + performDamping(y - by, { max: yMax });
     } else {
-      x = between((x += ox + deltaX), this.getXTranslation(k));
-      y = between((y += oy + deltaY), this.getYTranslation(k));
+      x = between((x += ox + deltaX), this.getXTranslation(k, touching));
+      y = between((y += oy + deltaY), this.getYTranslation(k, touching));
     }
     this.apply(new Value({ a, k, x, y }));
   }
-  resetBounce(point: number[] = [], cancel: boolean = false) {
+  resetBounce(touching: boolean, point: number[] = [], cancel: boolean = false) {
     let { a, k, x, y } = this.value().transform;
     // 若允许阻尼，首先应该先把当前值反算出阻尼之前的原值
     if (this.isDamping('rotate')) {
-      const ba = between(a, this.getRotation());
+      const ba = between(a, this.getRotation(touching));
       a = ba + revokeDamping(a - ba, { max: 180 });
     }
     if (this.isDamping('scale')) {
-      const bk = between(k, this.getScalation());
+      const bk = between(k, this.getScalation(touching));
       k = bk * revokeDamping(k / bk, { max: 2, mode: 1 });
     }
     if (this.isDamping('translate')) {
       const { containerWidth: xMax, containerHeight: yMax } = this.sizePosition();
-      const bx = between(x, this.getXTranslation());
+      const bx = between(x, this.getXTranslation(0, touching));
       x = bx + revokeDamping(x - bx, { max: xMax });
-      const by = between(y, this.getYTranslation());
+      const by = between(y, this.getYTranslation(0, touching));
       y = by + revokeDamping(y - by, { max: yMax });
     }
     // 重置之前是双指移动，是不允许取消动画的
-    this.transformTo(new Transform({ a, k, x, y }), point, { cancel });
+    this.transformTo(new Transform({ a, k, x, y }), point, { cancel, touching });
   }
-  dblScale(point: number[] = []) {
+  dblScale(touching: boolean, point: number[] = []) {
     // 这三个比例都是用保留三位小数的结果进行比较
     // 其实这里的3应该用1/屏幕的宽高算出的小数位数
     // 此刻比例和位移
     const tk = this.value().transform.k || 1;
     // 双击变化的比例
-    const dk = between(this.getDblScale(), this.getScalation());
+    const dk = between(this.getDblScale(touching), this.getScalation(touching));
     // 再次双击恢复的比例（初始比例）
-    const bk = between(1, this.getScalation());
+    const bk = between(1, this.getScalation(touching));
     // 双击变化（如果设置的双击比例大于初始比例并且此刻比例小于或等于初始比例
     // 或者设置的双击比例小于初始比例且此刻比例大于或等于初始比例）
     if ((dk > bk && tk <= bk) || (dk < bk && tk >= bk)) {
@@ -441,20 +458,21 @@ class ItemModel extends Transition {
         });
       } else {
         // 交给transformTo
-        this.transformTo(new Transform({ k: dk }), point, { cancel: false });
+        this.transformTo(new Transform({ k: dk }), point, { cancel: false, touching });
       }
     } else {
       // 再次双击恢复
       if (this.getDblAdjust()) {
         // 需要调整的情况，置为初始状态
-        this.transformTo(new Transform({ a: 0, k: bk, x: 0, y: 0 }), { cancel: false });
+        this.transformTo(new Transform({ a: 0, k: bk, x: 0, y: 0 }), { cancel: false, touching });
       } else {
         // 交给transformTo
-        this.transformTo(new Transform({ k: bk }), point, { cancel: false });
+        this.transformTo(new Transform({ k: bk }), point, { cancel: false, touching });
       }
     }
   }
   swipeBounce(
+    touching: boolean,
     duration: number,
     stretch: number,
     key: 'x' | 'y',
@@ -467,9 +485,9 @@ class ItemModel extends Transition {
   ) {
     const sizeInfo = this.sizePosition();
     const maxBounce = sizeInfo[key === 'x' ? 'containerWidth' : 'containerHeight'];
-    const xyScale = 1.2 * this.getDblScale();
+    const xyScale = 1.2 * this.getDblScale(touching);
     const xyPos = this.value().transform[key] || 0;
-    const xyRange = this.getTranslation()[key === 'x' ? 0 : 1];
+    const xyRange = this.getTranslation(0, touching)[key === 'x' ? 0 : 1];
     const sign = stretch > 0 ? 1 : -1;
     // 对距离进行优化(最大值是当前双击比例下图片宽度)
     const _stretch = Math.max(1, Math.min(Math.abs(stretch), xyScale * maxBounce)) * sign;
@@ -550,14 +568,17 @@ export type ISizePosition = {
   naturalHeight: number;
 };
 
+export type IRange = number[] | void | ((...args: any) => number[] | void);
+export type IDouble = number | void | ((...args: any) => number | void);
+
 export type IItemModelOption = {
   sizePosition?: ISizePosition; // 容器尺寸和元素实际尺寸
   dblAdjust?: boolean; // 双击中心点是否调整
-  dblScale?: number; // 双击放大比例
+  dblScale?: IDouble; // 双击放大比例
   damping?: IDamping[]; // 哪些操作超出边界可以进行阻尼效果，如果对rotate,scale,translate设置了无边界限制(Infinity)，则阻尼无效
-  scalation?: number[]; // 缩放范围 [0.1, 10]，最小比例0.1和最大比例10
-  translation?: number[][]; // 平移范围 [[-10, 20], [-20, 10]]，x最小-10，最大20，y最小-20，最大10
-  rotation?: number[]; // 旋转范围 [-10, 20]，逆时针可旋转20度和顺时针可旋转10度
+  scalation?: IRange; // 缩放范围 [0.1, 10]，最小比例0.1和最大比例10
+  translation?: IRange[]; // 平移范围 [[-10, 20], [-20, 10]]，x最小-10，最大20，y最小-20，最大10
+  rotation?: IRange; // 旋转范围 [-10, 20]，逆时针可旋转20度和顺时针可旋转10度
 } & ITransitionOptions & { transitionEl?: IElement };
 
 export default ItemModel;

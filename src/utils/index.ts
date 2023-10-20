@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-06-26 09:46:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-18 11:03:06
+ * @LastEditTime: 2023-10-20 10:19:12
  * @Description: ******
  */
 
@@ -34,7 +34,7 @@ export function between(v: number, [min, max]: number[], _?: boolean) {
   return Math.max(Math.min(v, max), min);
 }
 
-export function getSPBox(element?: Element | null) {
+export function getSizePosition(element?: Element | null) {
   if (element) {
     const { left, top, width, height } = element.getBoundingClientRect();
     return { x: left + width / 2, y: top + height / 2, w: width, h: height };

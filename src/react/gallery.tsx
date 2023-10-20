@@ -2,12 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-11 14:47:38
+ * @LastEditTime: 2023-10-20 14:53:45
  * @Description: ******
  */
 
 import React from 'react';
-import { Gesture, type IGestureEvent } from '@huangjs888/gesture/react';
+import Gesture, { type IGestureEvent } from '@huangjs888/gesture/react';
 import Image from './image';
 import Portal, { type IContainer } from './portal';
 import { useStableMemo } from './useStableMemo';
@@ -18,7 +18,7 @@ import {
   type ItemModel,
   type ICallback,
   type IOpenStyle,
-  type ISPBox,
+  type ISPosition,
   type IDirection,
 } from '../core';
 import {
@@ -32,7 +32,7 @@ import {
   scale,
   swipe,
 } from '../events';
-import { getSPBox, debounce } from '../utils';
+import { getSizePosition, debounce } from '../utils';
 import '../style/gallery.less';
 
 type IGalleryRef = {
@@ -54,7 +54,7 @@ export type IGalleryProps = {
   container?: IContainer; // 挂载的元素
   destroyOnClose?: boolean; // 关闭时是否销毁组件
   enableSwipeClose?: boolean; // 是否开启垂直下拉关闭
-  thumbnail?: ISPBox; // 计算展示和结束画廊时动画移动的位置信息，一般是缩略图的bbox
+  clickPosition?: ISPosition; // 计算展示和结束画廊时动画移动的位置信息，一般是缩略图的bbox
   imageUrls?: string[]; // image的url列表
   itemGap?: number; // 图片之间的间距
   direction?: IDirection; // 图片排列方向（上下滑动，还是左右滑动）
@@ -64,7 +64,7 @@ export type IGalleryProps = {
   renderError?: () => React.ReactElement | null; // 图片加载错误自定义渲染
   hasIndicator?: boolean; // 多图片时是否需要指示器（页码）
   renderLoading?: () => React.ReactElement | null; // 图片加载中自定义渲染
-  onPopupMenu?: (e: IGestureEvent) => void; // 长按弹出菜单事件
+  onContextMenu?: (e: IGestureEvent) => void; // 长按弹出菜单事件
   onChange?: (v: number) => void; // index改变时事件
   onAfterChange?: (v: number) => void; // index改变后事件
   onClose?: (e: IGestureEvent) => void; // 触发关闭事件，需要调用者在该事件内更新open参数
@@ -104,7 +104,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
       open = false,
       current = 0,
       container,
-      thumbnail,
+      clickPosition,
       imageUrls = [],
       itemGap = 20,
       direction = 'horizontal',
@@ -116,7 +116,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
       hasIndicator = true,
       destroyOnClose = false,
       enableSwipeClose = true,
-      onPopupMenu,
+      onContextMenu,
       onChange,
       onAfterChange,
       onClose,
@@ -132,7 +132,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     const wrapperRef = React.useRef<HTMLDivElement | null>(null);
     const [openStatus, setOpenStatus] = React.useState<number>(0);
     const [openStyle, setOpenStyle] = React.useState<IOpenStyle>({});
-    const [vspBox, setVSPBox] = React.useState<ISPBox>({});
+    const [viewPosition, setViewPosition] = React.useState<ISPosition>({});
     const [activeIndex, setActiveIndex] = useDerivedState<number>(defaultCurrent);
 
     React.useImperativeHandle(
@@ -166,7 +166,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     useIsomorphicLayoutEffect(() => {
       // T(0)状态
       if (open && openStatus === 0) {
-        setVSPBox(getSPBox(gestureRef.current?.findDOMElement()));
+        setViewPosition(getSizePosition(gestureRef.current?.findDOMElement()));
         // 开启打开动画
         setOpenStatus(1);
       }
@@ -177,8 +177,8 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
       }
     }, [open]);
 
-    // 在打开和关闭动画过程中thumbnail或vspBox发生变化，则不再重新动画
-    const stableBox = useStableMemo({ ospBox: thumbnail, vspBox });
+    // 在打开和关闭动画过程中clickPosition或viewPosition发生变化，则不再重新动画
+    const stableBox = useStableMemo({ clickPosition, viewPosition });
     useIsomorphicLayoutEffect(() => {
       // 进行开启关闭动画，F(1)或T(1)状态
       if (openStatus === 1) {
@@ -186,8 +186,8 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
         // 动画之前重置内部图片的transform
         item?.reset();
         const { elementWidth: ew = 0, elementHeight: eh = 0 } = item?.sizePosition() || {};
-        const { x: vx = 0, y: vy = 0, w: vw = 0, h: vh = 0 } = stableBox.data.vspBox || {};
-        const { x: ox = 0, y: oy = 0, w: ow = 0, h: oh = 0 } = stableBox.data.ospBox || {};
+        const { x: vx = 0, y: vy = 0, w: vw = 0, h: vh = 0 } = stableBox.data.viewPosition || {};
+        const { x: ox = 0, y: oy = 0, w: ow = 0, h: oh = 0 } = stableBox.data.clickPosition || {};
         const x = ow === 0 && oh === 0 ? 0 : ox - vx;
         const y = ow === 0 && oh === 0 ? 0 : oy - vy;
         const evw = ew == 0 && eh === 0 ? vw : ew;
@@ -205,8 +205,8 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
         }));
         // 使用Promise是为了使上述setState生效，在下一次渲染操作新的setState
         Promise.resolve().then(() => {
-          // 走一次getSPBox为了使上次渲染的样式立马生效，然后进行下次渲染
-          getSPBox(gestureRef.current?.findDOMElement());
+          // 走一次getSizePosition为了使上次渲染的样式立马生效，然后进行下次渲染
+          getSizePosition(gestureRef.current?.findDOMElement());
           // 以上两步可以可以合并只使用：setTimeout(() => {}, 0);
           // 动画结束样式
           setOpenStyle({ ...(open ? showStyle : hideStyle), t: 300 });
@@ -231,15 +231,18 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     useIsomorphicLayoutEffect(() => {
       const swiperModel = swiperModelRef.current;
       if (swiperModel) {
-        const { w: width, h: height } = vspBox;
+        const { w: width, h: height } = viewPosition;
         let size = direction !== 'horizontal' ? height : width;
         size = !size ? 0 : size + itemGap;
         swiperModel.itemSize(size);
       }
-    }, [direction, itemGap, vspBox]);
+    }, [direction, itemGap, viewPosition]);
 
     useIsomorphicLayoutEffect(() => {
-      const resize = debounce(() => setVSPBox(getSPBox(gestureRef.current?.findDOMElement())), 50);
+      const resize = debounce(
+        () => setViewPosition(getSizePosition(gestureRef.current?.findDOMElement())),
+        50,
+      );
       window.addEventListener('resize', resize);
       return () => {
         window.removeEventListener('resize', resize);
@@ -247,7 +250,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
     }, []);
 
     const _wrapperStyle = React.useMemo(() => {
-      let { w: width = 0, h: height = 0 } = vspBox;
+      let { w: width = 0, h: height = 0 } = viewPosition;
       const totalGap = (defaultTotal - 1) * itemGap;
       if (direction !== 'horizontal') {
         height = height * defaultTotal + totalGap;
@@ -255,7 +258,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
         width = width * defaultTotal + totalGap;
       }
       return { width, height };
-    }, [direction, itemGap, vspBox, defaultTotal]);
+    }, [direction, itemGap, viewPosition, defaultTotal]);
 
     function renderImages() {
       return imageUrls.map((url, index) => {
@@ -294,7 +297,7 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
             error={hasError ? renderError : false}
             loading={hasLoading ? renderLoading : false}
             active={!isLazy || activeIndex === index}
-            vspBox={vspBox}
+            viewPosition={viewPosition}
           />
         );
       });
@@ -313,8 +316,8 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
                 gesture.preventAllTap();
               }
             },
-            popupMenu: (e: IGestureEvent) => {
-              onPopupMenu?.(e);
+            contextMenu: (e: IGestureEvent) => {
+              onContextMenu?.(e);
             },
             internalClose: (e: IGestureEvent) => {
               if (typeof onClose === 'function') {
@@ -323,8 +326,10 @@ export default React.forwardRef<IGalleryRef, IGalleryProps>(
                 return true;
               }
             },
-            openStyleChange: (computedStyle: (style: IOpenStyle, bbox: ISPBox) => IOpenStyle) => {
-              setOpenStyle((prevOpenStyle) => computedStyle(prevOpenStyle, vspBox));
+            openStyleChange: (
+              computedStyle: (style: IOpenStyle, bbox: ISPosition) => IOpenStyle,
+            ) => {
+              setOpenStyle((prevOpenStyle) => computedStyle(prevOpenStyle, viewPosition));
             },
             slideBefore: (index: number) => {
               setActiveIndex(index);

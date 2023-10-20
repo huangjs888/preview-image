@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-16 15:37:10
+ * @LastEditTime: 2023-10-20 10:35:07
  * @Description: ******
  */
 
@@ -10,7 +10,7 @@ import React from 'react';
 import Gallery from './gallery';
 import Image from './image';
 import Portal from './portal';
-import type { ISPBox } from '../core';
+import type { ISPosition } from '../core';
 
 export * from '../core';
 
@@ -27,15 +27,15 @@ export const PreviewImage = function PreviewImage({
   urls = [],
   current = '',
   onClose,
-  showMenu,
-  thumbnail,
+  clickPosition,
+  onContextMenu,
 }: {
   open?: boolean;
   onClose?: () => void;
   urls?: string[];
   current?: string;
-  showMenu?: () => void;
-  thumbnail?: ISPBox;
+  clickPosition?: ISPosition;
+  onContextMenu?: () => void;
 }) {
   const index = urls.indexOf(current);
   return (
@@ -45,9 +45,9 @@ export const PreviewImage = function PreviewImage({
       imageUrls={urls}
       enableSwipeClose={true}
       destroyOnClose={true}
-      onPopupMenu={showMenu}
       onClose={onClose}
-      thumbnail={thumbnail}
+      clickPosition={clickPosition}
+      onContextMenu={onContextMenu}
     />
   );
 };

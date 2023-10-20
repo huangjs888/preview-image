@@ -18,6 +18,6 @@ export default function doubleTap(this: SwiperModel<ItemModel | null>, event: IG
   const translate = -this.activeIndex() * this.itemSize();
   const diff = Math.round(this.value().transform.default - translate);
   if (diff === 0) {
-    item?.dblScale(event.getPoint());
+    item?.dblScale(event.isTouching(), event.getPoint());
   }
 }

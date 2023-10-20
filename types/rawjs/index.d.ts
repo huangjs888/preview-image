@@ -1,13 +1,13 @@
 import Gallery from './gallery';
 import Image from './image';
-import { type ISPBox } from '../core';
+import { type ISPosition } from '../core';
 export * from '../core';
 export * from './gallery';
 export * from './image';
 export { Gallery, Image };
-export declare const previewImage: ({ urls, current, showMenu, thumbnail, }?: {
+export declare const previewImage: ({ urls, current, clickPosition, onContextMenu, }?: {
     urls?: string[] | undefined;
     current?: string | undefined;
-    showMenu?: (() => void) | undefined;
-    thumbnail?: ISPBox | undefined;
+    clickPosition?: ISPosition | undefined;
+    onContextMenu?: (() => void) | undefined;
 }) => void;

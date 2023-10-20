@@ -2,14 +2,13 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-16 15:35:07
+ * @LastEditTime: 2023-10-20 10:15:05
  * @Description: ******
  */
 
-import { isTouchable } from '@huangjs888/gesture';
-import { loadImage } from '@huangjs888/load-image';
 import { type ICSSStyle, type IElement, getElement, createElement } from '@huangjs888/lightdom';
-import { ItemModel, type ISPBox } from '../core';
+import { loadImage } from '@huangjs888/load-image';
+import { ItemModel, type ISPosition } from '../core';
 import loadingIcon from '../svg/loading.svg';
 import errorIcon from '../svg/error.svg';
 import '../style/image.less';
@@ -17,7 +16,7 @@ import '../style/image.less';
 class Image extends ItemModel {
   _wrapper: HTMLElement | null;
   _image: HTMLImageElement | null | undefined;
-  _vspBox: ISPBox | null = null;
+  _viewPosition: ISPosition | null = null;
   _loading: IElement | false;
   _error: IElement | false;
   _src: string = '';
@@ -28,7 +27,7 @@ class Image extends ItemModel {
     style,
     className,
     src = '',
-    vspBox,
+    viewPosition,
     loading,
     error,
     active = true,
@@ -36,8 +35,8 @@ class Image extends ItemModel {
     let el: (() => HTMLElement | null) | null = null;
     super({
       transitionEl: () => el?.(),
-      rotation: !isTouchable() ? [-Number.MAX_VALUE, Number.MAX_VALUE] : undefined,
-      scalation: !isTouchable() ? [0.1, 10] : undefined,
+      rotation: (touching) => (!touching ? [-Number.MAX_VALUE, Number.MAX_VALUE] : undefined),
+      scalation: (touching) => (!touching ? [0.1, 10] : undefined),
     });
     this._wrapper = createElement(
       { className: ['preview-image__image__wrapper', className || ''], style },
@@ -46,7 +45,7 @@ class Image extends ItemModel {
     ) as HTMLElement;
     this._loading = loading || null;
     this._error = error || null;
-    this.setVSPBox(vspBox);
+    this.setViewPosition(viewPosition);
     this.setSrc(src);
     this.setActive(active);
     el = () => this.getImageElement();
@@ -86,8 +85,8 @@ class Image extends ItemModel {
       }
     }
   }
-  setVSPBox(vspBox?: ISPBox) {
-    this._vspBox = vspBox || null;
+  setViewPosition(viewPosition?: ISPosition) {
+    this._viewPosition = viewPosition || null;
     this.resize();
   }
   load() {
@@ -123,7 +122,7 @@ class Image extends ItemModel {
     if (_image) {
       const nWidth = _image.naturalWidth;
       const nHeight = _image.naturalHeight;
-      const { x = 0, y = 0, w = 0, h = 0 } = this._vspBox || {};
+      const { x = 0, y = 0, w = 0, h = 0 } = this._viewPosition || {};
       const { elementWidth, elementHeight } = super.sizePosition({
         containerCenter: [x, y],
         containerWidth: w,
@@ -138,7 +137,7 @@ class Image extends ItemModel {
   destory() {
     this._wrapper = null;
     this._image = undefined;
-    this._vspBox = null;
+    this._viewPosition = null;
     this._loading = null;
     this._error = null;
   }
@@ -148,7 +147,7 @@ export type IImageOptions = {
   style?: ICSSStyle; // 样式
   className?: string; // 样式类
   src?: string; // 图片url地址
-  vspBox?: ISPBox; // 装image的容器的中心点位置和尺寸
+  viewPosition?: ISPosition; // 装image的容器的中心点位置和尺寸
   loading?: IElement | false; // 图片加载中自定义渲染
   error?: IElement | false; // 图片加载错误自定义渲染
   active?: boolean; // 是否准备加载

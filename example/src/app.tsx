@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-08-30 11:09:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-16 15:39:39
+ * @LastEditTime: 2023-10-20 10:46:39
  * @Description: ******
  */
 
@@ -33,7 +33,7 @@ function App() {
   const [reactMode, setReactMode] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [current, setCurrent] = React.useState('');
-  const [originBox, setOriginBox] = React.useState<{
+  const [clickPosition, setClickPosition] = React.useState<{
     x?: number;
     y?: number;
     w?: number;
@@ -42,24 +42,24 @@ function App() {
   const click = (e: React.SyntheticEvent) => {
     const origin = e.target as HTMLImageElement;
     const { left, top, width, height } = origin.getBoundingClientRect();
-    const thumbnail = { x: left + width / 2, y: top + height / 2, w: width, h: height };
-    // 如果不是缩略图，此时可以获取点击位置            // 如果不是缩略图，此时可以获取点击位置
-    /* const thumbnail = {
+    const position = { x: left + width / 2, y: top + height / 2, w: width, h: height };
+    // 如果不是缩略图，此时可以获取点击位置
+    /* const position = {
       x: (e.touches ?? [e])[0]?.pageX,
       y: (e.touches ?? [e])[0]?.pageY,
-      w: 0,
-      h: 0,
     }; */
     if (reactMode) {
-      setOriginBox(thumbnail);
+      setClickPosition(position);
       setCurrent(origin.src);
       setOpen(true);
     } else {
       previewImage({
         current: origin.src,
         urls: list,
-        thumbnail,
-        showMenu: () => {
+        // 预览图片时，图片将从该位置打开
+        clickPosition: position,
+        // 长按或右键可以在此弹出自定义菜单操作
+        onContextMenu: () => {
           alert('rawjs');
         },
       });
@@ -83,10 +83,10 @@ function App() {
         <PreviewImage
           open={open}
           onClose={() => setOpen(false)}
-          showMenu={() => sendMessage('react')}
           current={current}
           urls={list}
-          thumbnail={originBox}
+          clickPosition={clickPosition}
+          onContextMenu={() => sendMessage('react')}
         />
       ) : null}
     </div>

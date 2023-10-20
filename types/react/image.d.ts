@@ -1,5 +1,5 @@
 import React from 'react';
-import { ItemModel, type ISPBox } from '../core';
+import { ItemModel, type ISPosition } from '../core';
 import '../style/image.less';
 type IImageRef = {
     findImageElement: () => HTMLImageElement | null | undefined;
@@ -15,7 +15,7 @@ export interface IImageProps {
     error?: false | (() => React.ReactElement | null);
     loading?: false | (() => React.ReactElement | null);
     active?: boolean;
-    vspBox?: ISPBox;
+    viewPosition?: ISPosition;
 }
 declare const _default: React.ForwardRefExoticComponent<IImageProps & React.RefAttributes<IImageRef>>;
 export default _default;

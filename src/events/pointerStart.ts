@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:10:33
+ * @LastEditTime: 2023-10-20 14:33:07
  * @Description: ******
  */
 import type { IGestureEvent } from '@huangjs888/gesture';
@@ -27,7 +27,7 @@ export default function pointerStart(
     // 如果有动画停止，此时处于内外部同时，则非边缘图片的内部damping需要立马恢复（微信这么干的）
     if (item) {
       const { x: tx = 0, y: ty = 0, ...rest } = item.value().transform;
-      const [xRange, yRange] = item.getTranslation();
+      const [xRange, yRange] = item.getTranslation(0, event.isTouching());
       // 是否是边缘图片
       const isFirst = this.activeIndex() === 0;
       const isLast = this.activeIndex() === this.countItems() - 1;

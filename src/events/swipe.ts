@@ -156,18 +156,18 @@ export default function swipe(
         // 按照0.003的减速度减速运行得到减速到0时的时间和x，y方向的分量距离
         const { duration, stretchX, stretchY } = swipeComputed(0.003);
         if (this.isVertical()) {
-          const xRange = item.getXTranslation();
+          const xRange = item.getXTranslation(0, event.isTouching());
           // 竖向的时候固定x
           if (!(xRange[0] === 0 && xRange[1] === 0)) {
-            item.swipeBounce(duration, stretchX, 'x');
+            item.swipeBounce(event.isTouching(), duration, stretchX, 'x');
           }
-          item.swipeBounce(duration, stretchY - diffXY, 'y', transition);
+          item.swipeBounce(event.isTouching(), duration, stretchY - diffXY, 'y', transition);
         } else {
-          item.swipeBounce(duration, stretchX - diffXY, 'x', transition);
-          const yRange = item.getYTranslation();
+          item.swipeBounce(event.isTouching(), duration, stretchX - diffXY, 'x', transition);
+          const yRange = item.getYTranslation(0, event.isTouching());
           // 横向的时候固定y
           if (!(yRange[0] === 0 && yRange[1] === 0)) {
-            item.swipeBounce(duration, stretchY, 'y');
+            item.swipeBounce(event.isTouching(), duration, stretchY, 'y');
           }
         }
       }

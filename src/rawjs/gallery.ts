@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-18 11:33:11
+ * @LastEditTime: 2023-10-20 14:53:16
  * @Description: ******
  */
 
-import { Gesture, type IGestureEvent } from '@huangjs888/gesture';
+import Gesture, { type IGestureEvent } from '@huangjs888/gesture';
 import {
   type ICSSStyle,
   type IElement,
@@ -21,7 +21,7 @@ import {
   SwiperModel,
   type ICallback,
   type IOpenStyle,
-  type ISPBox,
+  type ISPosition,
   type IDirection,
 } from '../core';
 import Image from './image';
@@ -36,7 +36,7 @@ import {
   scale,
   swipe,
 } from '../events';
-import { getSPBox, preventDefault, debounce } from '../utils';
+import { getSizePosition, preventDefault, debounce } from '../utils';
 import '../style/gallery.less';
 
 class Gallery extends SwiperModel<Image> {
@@ -45,8 +45,8 @@ class Gallery extends SwiperModel<Image> {
   _wrapper: HTMLElement | null;
   _indicator: HTMLElement | null;
   _openStyle: IEOpenStyle | null = null;
-  _ospBox: ISPBox | null = null;
-  _vspBox: ISPBox | null = null;
+  _clickPosition: ISPosition | null = null;
+  _viewPosition: ISPosition | null = null;
   // _overflow: string = '';
   _destoryOnClose: boolean = false;
   _itemGap: number = 0;
@@ -72,8 +72,8 @@ class Gallery extends SwiperModel<Image> {
     enableSwipeClose = false,
     loading,
     error,
-    thumbnail,
-    onPopupMenu,
+    clickPosition,
+    onContextMenu,
     onChange,
     onAfterChange,
     onClose,
@@ -152,7 +152,7 @@ class Gallery extends SwiperModel<Image> {
       });
       super.itemModels(image, index);
     });
-    this.setOSPBox(thumbnail);
+    this.setClickPosition(clickPosition);
     this.setDestoryOnClose(destroyOnClose);
     this.setItemGap(itemGap);
     this.setDirection(direction);
@@ -168,8 +168,8 @@ class Gallery extends SwiperModel<Image> {
             // 曲线救国：这里使用回调阻止所有Tap事件触发
             gesture.preventAllTap();
           },
-          popupMenu: (e: IGestureEvent) => {
-            onPopupMenu?.(e);
+          contextMenu: (e: IGestureEvent) => {
+            onContextMenu?.(e);
           },
           internalClose: (e: IGestureEvent) => {
             if (typeof onClose === 'function') {
@@ -178,8 +178,8 @@ class Gallery extends SwiperModel<Image> {
               return true;
             }
           },
-          openStyleChange: (computedStyle: (style: IOpenStyle, bbox: ISPBox) => IOpenStyle) => {
-            this.openStyle(computedStyle(this._openStyle || {}, this._vspBox || {}));
+          openStyleChange: (computedStyle: (style: IOpenStyle, bbox: ISPosition) => IOpenStyle) => {
+            this.openStyle(computedStyle(this._openStyle || {}, this._viewPosition || {}));
           },
           slideBefore: (index: number) => {
             // slide当前图片就再加载
@@ -222,7 +222,7 @@ class Gallery extends SwiperModel<Image> {
       }
     };
     _backdrop.addEventListener('transitionend', transitionend, { capture: false, passive: false });
-    const resize = debounce(() => this.updateVSPBox(), 50);
+    const resize = debounce(() => this.updateViewPosition(), 50);
     window.addEventListener('resize', resize, { capture: false, passive: false });
     this._unbind = () => {
       gesture.destory();
@@ -231,9 +231,9 @@ class Gallery extends SwiperModel<Image> {
     };
     el = () => _wrapper;
   }
-  updateVSPBox() {
-    const vspBox = (this._vspBox = getSPBox(this._container));
-    (super.itemModels() as Image[]).forEach((image) => image.setVSPBox(vspBox));
+  updateViewPosition() {
+    const viewPosition = (this._viewPosition = getSizePosition(this._container));
+    (super.itemModels() as Image[]).forEach((image) => image.setViewPosition(viewPosition));
     this.updateImageSize();
   }
   updateImageGap() {
@@ -245,7 +245,7 @@ class Gallery extends SwiperModel<Image> {
     );
   }
   updateImageSize() {
-    let { w: width = 0, h: height = 0 } = this._vspBox || {};
+    let { w: width = 0, h: height = 0 } = this._viewPosition || {};
     let size = this.isVertical() ? height : width;
     size = !size ? 0 : size + this._itemGap;
     super.itemSize(size);
@@ -261,8 +261,8 @@ class Gallery extends SwiperModel<Image> {
   setDestoryOnClose(destoryOnClose?: boolean) {
     this._destoryOnClose = destoryOnClose || false;
   }
-  setOSPBox(ospBox?: ISPBox) {
-    this._ospBox = ospBox || null;
+  setClickPosition(clickPosition?: ISPosition) {
+    this._clickPosition = clickPosition || null;
   }
   setItemGap(itemGap?: number) {
     this._itemGap = itemGap || 0;
@@ -299,8 +299,8 @@ class Gallery extends SwiperModel<Image> {
     this._wrapper = null;
     this._container = null;
     this._openStyle = null;
-    this._ospBox = null;
-    this._vspBox = null;
+    this._clickPosition = null;
+    this._viewPosition = null;
     this._unbind = null;
   }
   // 私有方法
@@ -309,8 +309,8 @@ class Gallery extends SwiperModel<Image> {
     // 动画之前重置内部图片的transform
     image?.reset();
     const { elementWidth: ew = 0, elementHeight: eh = 0 } = image?.sizePosition() || {};
-    const { x: vx = 0, y: vy = 0, w: vw = 0, h: vh = 0 } = this._vspBox || {};
-    const { x: ox = 0, y: oy = 0, w: ow = 0, h: oh = 0 } = this._ospBox || {};
+    const { x: vx = 0, y: vy = 0, w: vw = 0, h: vh = 0 } = this._viewPosition || {};
+    const { x: ox = 0, y: oy = 0, w: ow = 0, h: oh = 0 } = this._clickPosition || {};
     const x = ow === 0 && oh === 0 ? 0 : ox - vx;
     const y = ow === 0 && oh === 0 ? 0 : oy - vy;
     const evw = ew == 0 && eh === 0 ? vw : ew;
@@ -326,8 +326,8 @@ class Gallery extends SwiperModel<Image> {
       // 这里在关闭的时候，优先从当前状态prevOpenStyle开始动画
       ...(open ? hideStyle : { ...showStyle, ...this._openStyle }),
     });
-    // 走一次getSPBox为了使上次样式立马生效，然后进行下次样式动画
-    getSPBox(this._container);
+    // 走一次getSizePosition为了使上次样式立马生效，然后进行下次样式动画
+    getSizePosition(this._container);
     // 动画结束样式
     this.openStyle({ ...(open ? showStyle : hideStyle), t: 300, end, open });
   }
@@ -408,7 +408,7 @@ class Gallery extends SwiperModel<Image> {
   open() {
     addClass(this._container, 'visible');
     this.preventDefault(true);
-    this.updateVSPBox();
+    this.updateViewPosition();
     this.animateOpen(true, () => {
       addClass(this._indicator, 'visible');
     });
@@ -446,10 +446,10 @@ export type IGalleryOptions = {
   hasIndicator?: boolean; // 多图片时是否需要指示器（页码）
   destroyOnClose?: boolean; // 关闭时是否销毁组件
   enableSwipeClose?: boolean; // 是否开启垂直下拉关闭
-  thumbnail?: ISPBox; // 计算展示和结束画廊时动画移动的位置信息，一般是缩略图的位置和尺寸
+  clickPosition?: ISPosition; // 计算展示和结束画廊时动画移动的位置信息，一般是缩略图的位置和尺寸
   loading?: IElement | false; // 图片加载中自定义渲染
   error?: IElement | false; // 图片加载错误自定义渲染
-  onPopupMenu?: (e: IGestureEvent) => void; // 长按弹出菜单事件
+  onContextMenu?: (e: IGestureEvent) => void; // 长按弹出菜单事件
   onChange?: (v: number) => void; // index改变时事件
   onAfterChange?: (v: number) => void; // index改变后事件
   onClose?: (e: IGestureEvent) => void; // 触发关闭事件，需要调用者在该事件内更新open参数

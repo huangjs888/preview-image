@@ -3,11 +3,11 @@ import { Transform } from '@huangjs888/transform';
 import { type IElement } from '@huangjs888/lightdom';
 declare class ItemModel extends Transition {
     _dblAdjust: boolean;
-    _dblScale: number | (() => number);
+    _dblScale: IDouble;
     _damping: IDamping[];
-    _rotation: number[] | (() => number[]);
-    _scalation: number[] | (() => number[]);
-    _translation: (number[] | ((v: number) => number[]))[];
+    _rotation: IRange;
+    _scalation: IRange;
+    _translation: IRange[];
     _sizePosition: ISizePosition & {
         elementWidth: number;
         elementHeight: number;
@@ -18,18 +18,18 @@ declare class ItemModel extends Transition {
         elementWidth: number;
         elementHeight: number;
     };
-    setRotation(a?: number[]): void;
-    getRotation(): any;
-    setScalation(k?: number[]): void;
-    getScalation(): any;
-    setTranslation(xy?: number[][]): void;
-    getTranslation(k?: number): any[];
-    setXTranslation(x?: number[]): void;
-    getXTranslation(k?: number): any;
-    setYTranslation(y?: number[]): void;
-    getYTranslation(k?: number): any;
-    setDblScale(k?: number): void;
-    getDblScale(): any;
+    setRotation(a?: IRange): void;
+    getRotation(...args: any): any;
+    setScalation(k?: IRange): void;
+    getScalation(...args: any): any;
+    setTranslation(xy?: IRange[]): void;
+    getTranslation(k?: number, ...args: any): any[];
+    setXTranslation(x?: IRange): void;
+    getXTranslation(k?: number, ...args: any): any;
+    setYTranslation(y?: IRange): void;
+    getYTranslation(k?: number, ...args: any): any;
+    setDblScale(k?: IDouble): void;
+    getDblScale(...args: any): number;
     setDblAdjust(aj?: boolean): void;
     getDblAdjust(): boolean;
     isDamping(key: IDamping): boolean;
@@ -44,13 +44,19 @@ declare class ItemModel extends Transition {
     translateXTo(x: number): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
     translateY(y: number): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
     translateYTo(y: number): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
-    transform(transform: Transform, point?: number[] | IAnimationExtendOptions, options?: IAnimationExtendOptions): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
-    transformTo(transform: Transform, point?: number[] | IAnimationExtendOptions, options?: IAnimationExtendOptions): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
+    transform(transform: Transform, point?: number[] | IAnimationExtendOptions, options?: IAnimationExtendOptions & {
+        touching?: boolean;
+    }): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
+    transformTo(transform: Transform, point?: number[] | (IAnimationExtendOptions & {
+        touching?: boolean;
+    }), options?: IAnimationExtendOptions & {
+        touching?: boolean;
+    }): Promise<import("@huangjs888/transition").ICSSLikeStyle>;
     computeOffset(point: number[], k: number, adjust?: boolean): number[];
-    moveBounce(angle: number, scale: number, deltaX: number, deltaY: number, point?: number[]): void;
-    resetBounce(point?: number[], cancel?: boolean): void;
-    dblScale(point?: number[]): void;
-    swipeBounce(duration: number, stretch: number, key: 'x' | 'y', transition?: (key: 'x' | 'y', xySwipe: number, xyBounce: number, option: (v: number) => IAnimationExtendOptions) => void): void;
+    moveBounce(touching: boolean, angle: number, scale: number, deltaX: number, deltaY: number, point?: number[]): void;
+    resetBounce(touching: boolean, point?: number[], cancel?: boolean): void;
+    dblScale(touching: boolean, point?: number[]): void;
+    swipeBounce(touching: boolean, duration: number, stretch: number, key: 'x' | 'y', transition?: (key: 'x' | 'y', xySwipe: number, xyBounce: number, option: (v: number) => IAnimationExtendOptions) => void): void;
 }
 export type IDamping = 'rotate' | 'scale' | 'translate';
 export type ISizePosition = {
@@ -60,14 +66,16 @@ export type ISizePosition = {
     naturalWidth: number;
     naturalHeight: number;
 };
+export type IRange = number[] | void | ((...args: any) => number[] | void);
+export type IDouble = number | void | ((...args: any) => number | void);
 export type IItemModelOption = {
     sizePosition?: ISizePosition;
     dblAdjust?: boolean;
-    dblScale?: number;
+    dblScale?: IDouble;
     damping?: IDamping[];
-    scalation?: number[];
-    translation?: number[][];
-    rotation?: number[];
+    scalation?: IRange;
+    translation?: IRange[];
+    rotation?: IRange;
 } & ITransitionOptions & {
     transitionEl?: IElement;
 };

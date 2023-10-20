@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-16 15:39:19
+ * @LastEditTime: 2023-10-20 10:47:14
  * @Description: ******
 -->
 <!doctype html>
@@ -79,21 +79,21 @@
           imgUrls.push(current);
           a.onclick = (e) => {
             const { left, top, width, height } = a.getBoundingClientRect();
-            const thumbnail = { x: left + width / 2, y: top + height / 2, w: width, h: height };
+            const position = { x: left + width / 2, y: top + height / 2, w: width, h: height };
             // 如果不是缩略图，此时可以获取点击位置
-            /* const thumbnail = {
+            /* const position = {
               x: (e.touches ?? [e])[0]?.pageX,
               y: (e.touches ?? [e])[0]?.pageY,
-              w: 0,
-              h: 0,
             }; */
             window.RawPreviewImage.previewImage({
               current,
               urls: imgUrls,
-              showMenu: () => {
+              // 预览图片时，图片将从该位置打开
+              clickPosition: position,
+              // 长按或右键可以在此弹出自定义菜单操作
+              onContextMenu: () => {
                 alert('rawjs');
               },
-              thumbnail,
             });
           };
         });
@@ -107,8 +107,8 @@
           direction: 'vertical',
           isLazy: false,
           destroyOnClose: true,
-          onPopupMenu: () => {
-            alert('onPopupMenu');
+          onContextMenu: () => {
+            alert('onContextMenu');
           },
           onClose: () => {
             gallery.close();

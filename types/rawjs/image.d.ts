@@ -1,20 +1,20 @@
 import { type ICSSStyle, type IElement } from '@huangjs888/lightdom';
-import { ItemModel, type ISPBox } from '../core';
+import { ItemModel, type ISPosition } from '../core';
 import '../style/image.less';
 declare class Image extends ItemModel {
     _wrapper: HTMLElement | null;
     _image: HTMLImageElement | null | undefined;
-    _vspBox: ISPBox | null;
+    _viewPosition: ISPosition | null;
     _loading: IElement | false;
     _error: IElement | false;
     _src: string;
     _active: boolean;
-    constructor({ container, style, className, src, vspBox, loading, error, active, }: IImageOptions);
+    constructor({ container, style, className, src, viewPosition, loading, error, active, }: IImageOptions);
     getElement(): HTMLElement | null;
     getImageElement(): HTMLImageElement | null;
     setActive(active?: boolean): void;
     setSrc(src?: string): void;
-    setVSPBox(vspBox?: ISPBox): void;
+    setViewPosition(viewPosition?: ISPosition): void;
     load(): void;
     resize(): void;
     destory(): void;
@@ -24,7 +24,7 @@ export type IImageOptions = {
     style?: ICSSStyle;
     className?: string;
     src?: string;
-    vspBox?: ISPBox;
+    viewPosition?: ISPosition;
     loading?: IElement | false;
     error?: IElement | false;
     active?: boolean;

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-09-19 14:13:38
+ * @LastEditTime: 2023-10-20 14:50:35
  * @Description: ******
  */
 
@@ -42,7 +42,7 @@ export default function pointerEnd(
     openStyleChange?.(() => ({ o: 1, k: 1, x: 0, y: 0, t: 300 }));
     return;
   }
-  item?.resetBounce(event.getPoint(), cancel);
+  item?.resetBounce(event.isTouching(), event.getPoint(), cancel);
   // 如果移动到越界，则抬起需要恢复
   let index = this.activeIndex();
   if (target === 'outside') {

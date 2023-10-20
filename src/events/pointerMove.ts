@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:10:07
+ * @LastEditTime: 2023-10-20 14:32:58
  * @Description: ******
  */
 
@@ -10,7 +10,7 @@ import type { IGestureEvent } from '@huangjs888/gesture';
 import { Value } from '@huangjs888/transition';
 import { revokeDamping, performDamping } from '@huangjs888/damping';
 import { between } from '../utils';
-import type { SwiperModel, ItemModel, ICallback, IOpenStyle, ISPBox } from '../core';
+import type { SwiperModel, ItemModel, ICallback, IOpenStyle, ISPosition } from '../core';
 
 const minScale = 0.3; // swipeClose下拉最小缩放比例
 const minOpacity = 0.01; // swipeClose下拉最小透明度
@@ -58,7 +58,7 @@ export default function pointerMove(
         const isLast = this.activeIndex() === this.countItems() - 1;
         const rightDown = isRightDown(this.isVertical(), point0, point);
         const { x: tx = 0, y: ty = 0 } = item.value().transform;
-        const [xRange, yRange] = item.getTranslation();
+        const [xRange, yRange] = item.getTranslation(0, event.isTouching());
         // 单指行为时，根据图片位置，判断后续为外部swiper操作还是内部图片操作
         if (this.isVertical()) {
           if (this.swipeClose() && tx >= xRange[1] && rightDown) {
@@ -122,7 +122,7 @@ export default function pointerMove(
       }
       if (onePointer) {
         const { x: tx = 0, y: ty = 0 } = item.value().transform;
-        const [xRange, yRange] = item.getTranslation();
+        const [xRange, yRange] = item.getTranslation(0, event.isTouching());
         let _delta = 0;
         if (this.isVertical()) {
           // 如果x方向没有可以移动的范围，则判断向上还是向下使用deltaY的正负，否则使用direction值
@@ -146,11 +146,11 @@ export default function pointerMove(
           _delta -= _deltaX;
         }
         // 内部图片需要移动的距离
-        item.moveBounce(0, 1, _deltaX, _deltaY, point);
+        item.moveBounce(event.isTouching(), 0, 1, _deltaX, _deltaY, point);
         // 外部swiper需要移动的距离
         this.apply(new Value(translate + performDamping(_delta, maxOption)));
       } else {
-        item.moveBounce(angle, scale, _deltaX, _deltaY, point);
+        item.moveBounce(event.isTouching(), angle, scale, _deltaX, _deltaY, point);
         if (diff !== 0) {
           // 多指移动前，将外部swiper移动的部分归位（内部image会把swiper的距离加进去）
           this.apply(new Value(translate));
@@ -160,8 +160,8 @@ export default function pointerMove(
     return;
   }
   if (this._moveTarget === 'closures') {
-    openStyleChange?.((prevStyle: IOpenStyle, vspBox: ISPBox) => {
-      const { w = 0, h = 0, x: sx = 0, y: sy = 0 } = vspBox;
+    openStyleChange?.((prevStyle: IOpenStyle, sizePosition: ISPosition) => {
+      const { w = 0, h = 0, x: sx = 0, y: sy = 0 } = sizePosition;
       const k = Math.min(
         Math.max(1 - ((this.isVertical() ? moveX / w : moveY / h) || 0), minScale),
         1,

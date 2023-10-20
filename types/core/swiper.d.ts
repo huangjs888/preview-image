@@ -31,7 +31,7 @@ export type SwiperOption<T> = {
 } & ITransitionOptions & {
     transitionEl?: IElement;
 };
-export type ISPBox = {
+export type ISPosition = {
     x?: number;
     y?: number;
     w?: number;
@@ -41,7 +41,7 @@ export type IOpenStyle = {
     o?: number;
     k?: number;
     t?: number;
-} & ISPBox;
+} & ISPosition;
 export type ICallback = {
     [key: string]: Function;
 };

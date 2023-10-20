@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-10 16:03:01
+ * @LastEditTime: 2023-10-20 09:24:44
  * @Description: ******
  */
 
@@ -127,7 +127,7 @@ export type SwiperOption<T> = {
   itemSize?: number;
 } & ITransitionOptions & { transitionEl?: IElement };
 
-export type ISPBox = {
+export type ISPosition = {
   x?: number;
   y?: number;
   w?: number;
@@ -138,7 +138,7 @@ export type IOpenStyle = {
   o?: number;
   k?: number;
   t?: number;
-} & ISPBox;
+} & ISPosition;
 
 export type ICallback = {
   [key: string]: Function;
