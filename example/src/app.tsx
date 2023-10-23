@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-08-30 11:09:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-20 10:46:39
+ * @LastEditTime: 2023-10-23 15:03:34
  * @Description: ******
  */
 
@@ -16,7 +16,7 @@ import './app.css';
 
 const sendMessage = (data: any) => {
   ((window as any).ReactNativeWebView || window).postMessage(JSON.stringify(data));
-  window.alert(data);
+  console.log(data);
 };
 
 const list = [
@@ -56,11 +56,14 @@ function App() {
       previewImage({
         current: origin.src,
         urls: list,
+        onClose: () => {
+          sendMessage('close');
+        },
         // 预览图片时，图片将从该位置打开
         clickPosition: position,
         // 长按或右键可以在此弹出自定义菜单操作
         onContextMenu: () => {
-          alert('rawjs');
+          sendMessage('rawjs');
         },
       });
     }
@@ -82,7 +85,10 @@ function App() {
       {reactMode ? (
         <PreviewImage
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            sendMessage('close');
+          }}
           current={current}
           urls={list}
           clickPosition={clickPosition}

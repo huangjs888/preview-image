@@ -159,7 +159,7 @@
   "dependencies": {
     "@babel/runtime-corejs3": "^7.22.10",
     "@huangjs888/damping": "^2.2.1",
-    "@huangjs888/gesture": "^3.2.0",
+    "@huangjs888/gesture": "^3.2.1",
     "@huangjs888/lightdom": "^2.1.5",
     "@huangjs888/load-image": "^1.2.2",
     "@huangjs888/transform": "^1.2.2",

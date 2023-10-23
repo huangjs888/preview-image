@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2022-05-11 17:49:45
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-20 10:13:46
+ * @LastEditTime: 2023-10-23 14:53:04
  * @Description: ******
  */
 
@@ -21,11 +21,13 @@ export { Gallery, Image };
 export const previewImage = function previewImage({
   urls = [],
   current = '',
+  onClose,
   clickPosition,
   onContextMenu,
 }: {
   urls?: string[];
   current?: string;
+  onClose?: () => void;
   clickPosition?: ISPosition;
   onContextMenu?: () => void;
 } = {}) {
@@ -37,6 +39,7 @@ export const previewImage = function previewImage({
     enableSwipeClose: true,
     onClose: () => {
       gallery.close();
+      onClose?.();
     },
     clickPosition,
     onContextMenu,
