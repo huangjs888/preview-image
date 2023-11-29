@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-20 10:15:05
+ * @LastEditTime: 2023-11-07 09:25:43
  * @Description: ******
  */
 
@@ -102,7 +102,6 @@ class Image extends ItemModel {
           _wrapper.appendChild(image);
         })
         .catch(() => {
-          this._image = null;
           _wrapper.innerHTML = '';
           const error = this._error;
           if (error !== false) {

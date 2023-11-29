@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-08-08 16:47:13
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-20 13:36:39
+ * @LastEditTime: 2023-11-01 14:35:38
  * @Description: ******
  */
 
@@ -133,7 +133,6 @@ export default React.forwardRef<IImageRef, IImageProps>(
           {...(status > 0 ? { src } : {})}
           {...imageSize}
         />
-        {}
         {status <= 1 && loading !== false && (loading || defaultRenderLoading)()}
         {status === 3 && error !== false && (error || defaultRenderError)()}
       </div>
