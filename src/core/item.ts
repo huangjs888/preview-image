@@ -396,7 +396,7 @@ class ItemModel extends Transition {
       k = between((k *= scale), kRange);
     }
     const [ox, oy] = this.computeOffset(point, k);
-    if (this.isDamping('scale')) {
+    if (this.isDamping('translate')) {
       const { containerWidth: xMax, containerHeight: yMax } = this.sizePosition();
       // 先把当前值反算出阻尼之前的原值
       let bx = between(x, this.getXTranslation(0, touching));
